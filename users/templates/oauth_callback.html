@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth Authentication Complete</title>
+    <script>
+        window.onload = function() {
+            // Extract token and user data from the context
+            const token = "{{ token }}";
+            const userData = {
+                id: "{{ user_id }}",
+                email: "{{ email }}",
+                name: "{{ name }}"
+            };
+            
+            // Send the data to the parent window (if in a popup)
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'GOOGLE_AUTH_SUCCESS',
+                    token: token,
+                    user: userData
+                }, '*');  // In production, specify origin instead of '*'
+                
+                // Close the popup
+                setTimeout(function() {
+                    window.close();
+                }, 1000);
+            } else {
+                // Redirect to frontend with data in hash
+                const redirectUri = "http://localhost:3001/Authentication/google-callback" + 
+                    "?id_token=" + encodeURIComponent(token) +
+                    "&email=" + encodeURIComponent(userData.email) +
+                    "&name=" + encodeURIComponent(userData.name);
+                
+                window.location.href = redirectUri;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div style="text-align: center; font-family: Arial, sans-serif; margin-top: 100px;">
+        <h2>Authentication Successful</h2>
+        <p>Redirecting you back to the application...</p>
+    </div>
+</body>
+</html>

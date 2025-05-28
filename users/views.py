@@ -1,0 +1,108 @@
+from django.contrib.auth import get_user_model
+from rest_framework import viewsets, generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
+from .models import UserProfile, SavedScholarship, ScholarshipApplication
+from .serializers import (
+    UserSerializer, UserRegistrationSerializer, ChangePasswordSerializer,
+    SavedScholarshipSerializer, ScholarshipApplicationSerializer, UserProfileSerializer
+)
+from .permissions import IsOwnerOrReadOnly
+
+User = get_user_model()
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """API endpoint for users"""
+    
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return UserRegistrationSerializer
+        return UserSerializer
+    
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return super().get_permissions()
+    
+    def get_queryset(self):
+        # Regular users can only see their own profile
+        if not self.request.user.is_staff:
+            return User.objects.filter(id=self.request.user.id)
+        return User.objects.all()
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        """Get current user's profile"""
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['put', 'patch'], url_path='update-profile')
+    def update_profile(self, request):
+        """Update current user's profile"""
+        user = request.user
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['post'], url_path='change-password')
+    def change_password(self, request):
+        """Change current user's password"""
+        user = request.user
+        serializer = ChangePasswordSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            # Check old password
+            if not user.check_password(serializer.data.get("old_password")):
+                return Response(
+                    {"old_password": ["Wrong password."]}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Set new password
+            user.set_password(serializer.data.get("new_password"))
+            user.save()
+            return Response({"message": "Password updated successfully"})
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RegisterView(generics.CreateAPIView):
+    """API endpoint for user registration"""
+    
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = UserRegistrationSerializer
+
+
+class SavedScholarshipViewSet(viewsets.ModelViewSet):
+    """API endpoint for saved scholarships"""
+    
+    serializer_class = SavedScholarshipSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return SavedScholarship.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ScholarshipApplicationViewSet(viewsets.ModelViewSet):
+    """API endpoint for scholarship applications"""
+    
+    serializer_class = ScholarshipApplicationSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return ScholarshipApplication.objects.filter(user=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
