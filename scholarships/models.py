@@ -65,6 +65,8 @@ class FieldOfStudy(models.Model):
 class Scholarship(models.Model):
     title = models.CharField(max_length=200)
     description = RichTextField()
+    provider = models.CharField(max_length=200, default='Unknown Provider')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     levels = models.ManyToManyField(Level, related_name='scholarships')
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='scholarships')
     field_of_study = models.ManyToManyField(FieldOfStudy, related_name='scholarships')

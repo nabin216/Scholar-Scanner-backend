@@ -93,12 +93,21 @@ class SavedScholarshipSerializer(serializers.ModelSerializer):
         read_only=True
     )
     scholarship_deadline = serializers.DateField(source='scholarship.deadline', read_only=True)
+    
+    # Add the full scholarship details object
+    scholarship_details = serializers.SerializerMethodField()
+
+    def get_scholarship_details(self, obj):
+        """Return the full scholarship details"""
+        from scholarships.serializers import ScholarshipSerializer
+        return ScholarshipSerializer(obj.scholarship).data
 
     class Meta:
         model = SavedScholarship
         fields = [
             'id', 'user', 'scholarship', 'date_saved', 'scholarship_title',
-            'scholarship_provider', 'scholarship_amount', 'scholarship_deadline'
+            'scholarship_provider', 'scholarship_amount', 'scholarship_deadline',
+            'scholarship_details'
         ]
         read_only_fields = ['user', 'date_saved']
 
