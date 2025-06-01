@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
+import random
+import string
+from datetime import timedelta
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -108,3 +112,43 @@ class ScholarshipApplication(models.Model):
     
     def __str__(self):
         return f"{self.user.email} - {self.scholarship.title} ({self.status})"
+
+
+class EmailVerification(models.Model):
+    """Model to store email verification OTP codes"""
+    
+    email = models.EmailField()
+    otp_code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+    is_used = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"OTP for {self.email} - {self.otp_code}"
+    
+    def is_expired(self):
+        """Check if OTP is expired (10 minutes)"""
+        from django.conf import settings
+        expire_time = self.created_at + timedelta(minutes=getattr(settings, 'OTP_EXPIRE_MINUTES', 10))
+        return timezone.now() > expire_time
+    
+    def is_valid(self):
+        """Check if OTP is valid (not used, not expired, not verified)"""
+        return not self.is_used and not self.is_expired() and not self.is_verified
+    
+    @classmethod
+    def generate_otp(cls, email):
+        """Generate a new OTP for the given email"""
+        from django.conf import settings
+        
+        # Mark any existing OTPs as used
+        cls.objects.filter(email=email, is_used=False).update(is_used=True)
+        
+        # Generate new OTP
+        otp_length = getattr(settings, 'OTP_LENGTH', 6)
+        otp_code = ''.join(random.choices(string.digits, k=otp_length))
+        
+        return cls.objects.create(email=email, otp_code=otp_code)

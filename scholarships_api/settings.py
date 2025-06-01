@@ -12,9 +12,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -26,7 +31,7 @@ SECRET_KEY = 'django-insecure-p7d(q^64hkzvn-p%n)bd%&$ptg1c+zs*knhhu-ar5b4(w4*ioj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = False
@@ -269,6 +274,36 @@ GOOGLE_OAUTH = {
 # OAuth Login Redirect
 LOGIN_REDIRECT_URL = '/api/user/social-auth-success/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+
+# Email Configuration - AWS SES Only
+# Uses AWS SES SMTP as primary method, console backend for development
+
+# Check if AWS SES SMTP credentials are available
+if os.environ.get('AWS_SES_SMTP_USERNAME') and os.environ.get('AWS_SES_SMTP_PASSWORD'):
+    # Production: Use AWS SES SMTP
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = f'email-smtp.{os.environ.get("AWS_SES_REGION", "eu-north-1")}.amazonaws.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.environ.get('AWS_SES_SMTP_USERNAME', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('AWS_SES_SMTP_PASSWORD', '')
+    print("📧 Email Backend: AWS SES SMTP")
+else:
+    # Development: Use console backend when AWS SES credentials are not configured
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    print("📧 Email Backend: Console (development mode - emails will print to terminal)")
+
+# AWS SES Configuration
+AWS_SES_REGION = os.environ.get('AWS_SES_REGION', 'eu-north-1')
+AWS_SES_FROM_EMAIL = os.environ.get('AWS_SES_FROM_EMAIL', 'asadurzamannabin@gmail.com')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
+
+DEFAULT_FROM_EMAIL = f'Scholarship Portal <asadurzamannabin@gmail.com>'
+
+# OTP Configuration
+OTP_EXPIRE_MINUTES = 10  # OTP expires in 10 minutes
+OTP_LENGTH = 6  # 6-digit OTP
 
 # CKEditor Configuration
 CKEDITOR_BASEPATH = "/static/ckeditor/ckeditor/"
