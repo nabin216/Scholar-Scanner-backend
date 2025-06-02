@@ -141,14 +141,13 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle',
         'rest_framework.throttling.ScopedRateThrottle',
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': os.getenv('THROTTLE_RATE_ANON', '100/day'),  # Limit anonymous users
-        'user': os.getenv('THROTTLE_RATE_USER', '1000/day'),  # Limit authenticated users
-        'auth': os.getenv('THROTTLE_RATE_AUTH', '5/minute'),  # Limit authentication attempts
-        'login': os.getenv('THROTTLE_RATE_LOGIN', '5/minute'),  # Limit login attempts
-        'registration': os.getenv('THROTTLE_RATE_REGISTRATION', '10/day'),  # Limit registration attempts
-        'email_verification': os.getenv('THROTTLE_RATE_EMAIL_VERIFICATION', '3/hour'),  # Limit email verification requests
+    ],    'DEFAULT_THROTTLE_RATES': {
+        'anon': os.getenv('THROTTLE_RATE_ANON', '1000/hour'),  # Increased for development
+        'user': os.getenv('THROTTLE_RATE_USER', '10000/day'),  # Increased for development
+        'auth': os.getenv('THROTTLE_RATE_AUTH', '30/minute'),  # Increased for development
+        'login': os.getenv('THROTTLE_RATE_LOGIN', '30/minute'),  # Increased for development
+        'registration': os.getenv('THROTTLE_RATE_REGISTRATION', '50/day'),  # Increased for development
+        'email_verification': os.getenv('THROTTLE_RATE_EMAIL_VERIFICATION', '20/hour'),  # Increased for development
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
