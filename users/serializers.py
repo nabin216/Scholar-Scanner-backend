@@ -70,19 +70,33 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validators=[validate_password]
     )
     password2 = serializers.CharField(write_only=True, required=True)
-    otp_code = serializers.CharField(max_length=6, required=True, write_only=True)
+    # Note: otp_code is handled in validate() method to avoid password validation interference
     
     class Meta:
         model = User
-        fields = ['email', 'password', 'password2', 'full_name', 'first_name', 'last_name', 'otp_code']
-    
+        fields = ['email', 'password', 'password2', 'full_name', 'first_name', 'last_name']
+        # Note: otp_code is not in fields to avoid password validation being applied to it
+        
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         
-        # Verify OTP
+        # Get OTP code from initial_data since it's not in the fields
+        otp_code = self.initial_data.get('otp_code')
+        if not otp_code:
+            raise serializers.ValidationError({"otp_code": "OTP code is required."})
+        
+        if not otp_code.isdigit():
+            raise serializers.ValidationError({"otp_code": "OTP must contain only digits."})
+        
+        if len(otp_code) != 6:
+            raise serializers.ValidationError({"otp_code": "OTP must be exactly 6 digits."})
+        
+        # Store the OTP code in attrs for the create method
+        attrs['otp_code'] = otp_code
+        
+        # Verify OTP validity
         email = attrs['email']
-        otp_code = attrs['otp_code']
         
         try:
             otp_obj = EmailVerification.objects.filter(
@@ -186,3 +200,54 @@ class ScholarshipApplicationSerializer(serializers.ModelSerializer):
             'notes', 'scholarship_title', 'scholarship_provider', 'scholarship_amount'
         ]
         read_only_fields = ['user', 'date_applied', 'last_updated']
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """Serializer for password reset request"""
+    email = serializers.EmailField(required=True)
+    
+    def validate_email(self, value):
+        """Check if user with this email exists"""
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("No user found with this email address.")
+        return value
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """Serializer for password reset confirmation"""
+    email = serializers.EmailField(required=True)
+    otp_code = serializers.CharField(max_length=6, required=True)
+    new_password = serializers.CharField(required=True, validators=[validate_password])
+    new_password2 = serializers.CharField(required=True)
+    
+    def validate_otp_code(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("OTP must contain only digits")
+        if len(value) != 6:
+            raise serializers.ValidationError("OTP must be 6 digits")
+        return value
+    
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password2']:
+            raise serializers.ValidationError({"new_password": "Password fields didn't match."})
+        
+        # Verify OTP validity for password reset
+        email = attrs['email']
+        otp_code = attrs['otp_code']
+        
+        try:
+            otp_obj = EmailVerification.objects.filter(
+                email=email,
+                otp_code=otp_code,
+                verification_type='password_reset',
+                is_used=False,
+                is_verified=False
+            ).latest('created_at')
+            
+            if not otp_obj.is_valid():
+                raise serializers.ValidationError({"otp_code": "Invalid or expired OTP code."})
+                
+        except EmailVerification.DoesNotExist:
+            raise serializers.ValidationError({"otp_code": "Invalid OTP code."})
+        
+        return attrs

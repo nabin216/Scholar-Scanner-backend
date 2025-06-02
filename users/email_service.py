@@ -12,20 +12,23 @@ try:
     AWS_SES_AVAILABLE = True
 except ImportError:
     AWS_SES_AVAILABLE = False
-    logging.warning("boto3 not installed, falling back to Django's email backend.")
+    logging.warning("boto3 not installed. Falling back to Django's email backend.")
 
 logger = logging.getLogger(__name__)
 
 
 def send_otp_email_aws_ses(email, otp_code):
     """Send OTP verification email using AWS SES API"""
+    
     if not AWS_SES_AVAILABLE:
         logger.warning("AWS SES not available, falling back to Django email backend")
         return send_otp_email(email, otp_code)
+    
     # Check for AWS credentials
     aws_access_key = getattr(settings, 'AWS_ACCESS_KEY_ID', None) or os.environ.get('AWS_ACCESS_KEY_ID')
     aws_secret_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None) or os.environ.get('AWS_SECRET_ACCESS_KEY')
-    aws_region = getattr(settings, 'AWS_SES_REGION', 'eu-north-1')
+    aws_region = getattr(settings, 'AWS_SES_REGION', None) or os.environ.get('AWS_SES_REGION', 'eu-north-1')
+    
     if not aws_access_key or not aws_secret_key:
         logger.warning("AWS credentials not configured, falling back to Django email backend")
         return send_otp_email(email, otp_code)
@@ -38,7 +41,8 @@ def send_otp_email_aws_ses(email, otp_code):
             aws_secret_access_key=aws_secret_key,
             region_name=aws_region
         )
-        from_email = 'asadurzamannabin@gmail.com'
+        
+        from_email = getattr(settings, 'AWS_SES_FROM_EMAIL', 'noreply@scholarscanner.com')
         
         # HTML content
         html_content = get_otp_html_template(otp_code)
@@ -390,15 +394,15 @@ def send_otp_email(email, otp_code):
 def send_verification_email(email, otp_code):
     """
     Main function to send verification email.
-    Uses AWS SES API if credentials are available, otherwise falls back to Django SMTP backend.
+    Uses AWS SES by default, falls back to Django email backend if AWS SES fails.
     """
     try:
-        # Try AWS SES API first (requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
+        # Try AWS SES first
         if send_otp_email_aws_ses(email, otp_code):
-            logger.info(f"Verification email sent successfully to {email} via AWS SES API")
+            logger.info(f"Verification email sent successfully to {email} via AWS SES")
             return True
         else:
-            logger.warning("AWS SES API failed, trying Django SMTP backend (AWS SES SMTP)")
+            logger.warning("AWS SES failed, trying Django email backend")
             return send_otp_email(email, otp_code)
     except Exception as e:
         logger.error(f"All email sending methods failed: {e}")
@@ -411,10 +415,12 @@ def send_welcome_email_aws_ses(email, full_name):
     if not AWS_SES_AVAILABLE:
         logger.warning("AWS SES not available, falling back to Django email backend")
         return send_welcome_email_django(email, full_name)
-      # Check for AWS credentials
+    
+    # Check for AWS credentials
     aws_access_key = getattr(settings, 'AWS_ACCESS_KEY_ID', None) or os.environ.get('AWS_ACCESS_KEY_ID')
     aws_secret_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None) or os.environ.get('AWS_SECRET_ACCESS_KEY')
-    aws_region = getattr(settings, 'AWS_SES_REGION', 'eu-north-1')
+    aws_region = getattr(settings, 'AWS_SES_REGION', None) or os.environ.get('AWS_SES_REGION', 'eu-north-1')
+    
     if not aws_access_key or not aws_secret_key:
         logger.warning("AWS credentials not configured, falling back to Django email backend")
         return send_welcome_email_django(email, full_name)
@@ -427,7 +433,8 @@ def send_welcome_email_aws_ses(email, full_name):
             aws_secret_access_key=aws_secret_key,
             region_name=aws_region
         )
-        from_email = 'asadurzamannabin@gmail.com'
+        
+        from_email = getattr(settings, 'AWS_SES_FROM_EMAIL', 'noreply@scholarshipportal.com')
         
         # HTML content
         html_content = get_welcome_html_template(full_name)
@@ -590,15 +597,14 @@ def get_welcome_html_template(full_name):
                     <div class="feature-item">
                         <span class="feature-icon">👤</span>
                         <span>Complete your profile for personalized recommendations</span>
-                    </div>
-                    <div class="feature-item">
+                    </div>                    <div class="feature-item">
                         <span class="feature-icon">📊</span>
                         <span>Track your application progress</span>
                     </div>
                 </div>
                 
                 <div style="text-align: center;">
-                    <a href="http://localhost:3000/scholarships/search" class="cta-button">
+                    <a href="{settings.FRONTEND_URL}/scholarships/search" class="cta-button">
                         🚀 Start Exploring Scholarships
                     </a>
                 </div>
@@ -635,7 +641,7 @@ What you can do now:
 👤 Complete your profile for personalized recommendations
 📊 Track your application progress
 
-Start exploring scholarships: http://localhost:3000/scholarships/search
+Start exploring scholarships: {settings.FRONTEND_URL}/scholarships/search
 
 If you have any questions or need assistance, our support team is here to help at support@scholarshipportal.com.
 
@@ -802,16 +808,252 @@ def send_welcome_email_django(user_or_email, full_name=None):
 def send_welcome_email(user):
     """
     Main function to send welcome email.
-    Uses AWS SES API if credentials are available, otherwise falls back to Django SMTP backend.
+    Uses AWS SES by default, falls back to Django email backend if AWS SES fails.
     """
     try:
-        # Try AWS SES API first (requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
+        # Try AWS SES first
         if send_welcome_email_aws_ses(user.email, user.full_name):
-            logger.info(f"Welcome email sent successfully to {user.email} via AWS SES API")
+            logger.info(f"Welcome email sent successfully to {user.email} via AWS SES")
             return True
         else:
-            logger.warning("AWS SES API failed, trying Django SMTP backend (AWS SES SMTP)")
+            logger.warning("AWS SES failed for welcome email, trying Django email backend")
             return send_welcome_email_django(user)
     except Exception as e:
         logger.error(f"All welcome email sending methods failed: {e}")
         return False
+
+
+def send_password_reset_email_aws_ses(email, otp_code):
+    """Send password reset email using AWS SES API"""
+    
+    if not AWS_SES_AVAILABLE:
+        logger.warning("AWS SES not available, falling back to Django email backend")
+        return send_password_reset_email(email, otp_code)
+    
+    # Check for AWS credentials
+    aws_access_key = getattr(settings, 'AWS_ACCESS_KEY_ID', None) or os.environ.get('AWS_ACCESS_KEY_ID')
+    aws_secret_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None) or os.environ.get('AWS_SECRET_ACCESS_KEY')
+    aws_region = getattr(settings, 'AWS_SES_REGION', None) or os.environ.get('AWS_SES_REGION', 'eu-north-1')
+    
+    if not aws_access_key or not aws_secret_key:
+        logger.warning("AWS credentials not configured, falling back to Django email backend")
+        return send_password_reset_email(email, otp_code)
+    
+    try:
+        # Create SES client
+        ses_client = boto3.client(
+            'ses',
+            aws_access_key_id=aws_access_key,
+            aws_secret_access_key=aws_secret_key,
+            region_name=aws_region
+        )
+        
+        from_email = getattr(settings, 'AWS_SES_FROM_EMAIL', 'noreply@scholarscanner.com')
+        
+        # HTML content
+        html_content = get_password_reset_html_template(otp_code)
+        
+        # Plain text content
+        plain_content = get_password_reset_plain_template(otp_code)
+        
+        # Send email
+        response = ses_client.send_email(
+            Source=from_email,
+            Destination={'ToAddresses': [email]},
+            Message={
+                'Subject': {'Data': '🔐 Password Reset - Scholarship Portal'},
+                'Body': {
+                    'Html': {'Data': html_content},
+                    'Text': {'Data': plain_content}
+                }
+            }
+        )
+        
+        logger.info(f"Password reset email sent successfully via AWS SES to {email}. Message ID: {response['MessageId']}")
+        return True
+        
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        logger.error(f"AWS SES ClientError ({error_code}): {e}")
+        return send_password_reset_email(email, otp_code)
+    except Exception as e:
+        logger.error(f"Failed to send password reset email via AWS SES: {e}")
+        return send_password_reset_email(email, otp_code)
+
+
+def send_password_reset_email(email, otp_code):
+    """Send password reset email using Django's email backend (fallback method)"""
+    
+    try:
+        subject = '🔐 Password Reset - Scholarship Portal'
+        html_message = get_password_reset_html_template(otp_code)
+        plain_message = get_password_reset_plain_template(otp_code)
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@scholarshipportal.com')
+        
+        # Send email
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=from_email,
+            recipient_list=[email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        
+        logger.info(f"Password reset email sent successfully via Django backend to {email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send password reset email via Django backend: {e}")
+        return False
+
+
+def get_password_reset_html_template(otp_code):
+    """Generate HTML template for password reset email"""
+    return f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset - Scholarship Portal</title>
+        <style>
+            body {{
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f8fafc;
+            }}
+            .container {{
+                background-color: #ffffff;
+                border-radius: 12px;
+                padding: 40px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e2e8f0;
+            }}
+            .header {{
+                text-align: center;
+                margin-bottom: 30px;
+                padding-bottom: 20px;
+                border-bottom: 3px solid #2563eb;
+            }}
+            .header h1 {{
+                color: #2563eb;
+                margin: 0 0 10px 0;
+                font-size: 28px;
+                font-weight: bold;
+            }}
+            .header p {{
+                color: #64748b;
+                margin: 0;
+                font-size: 16px;
+            }}
+            .content {{
+                margin-bottom: 30px;
+            }}
+            .content h2 {{
+                color: #1e293b;
+                margin-bottom: 20px;
+                font-size: 24px;
+            }}
+            .content p {{
+                margin-bottom: 15px;
+                font-size: 16px;
+                color: #475569;
+            }}
+            .otp-box {{
+                background-color: #fff;
+                border: 2px solid #dc2626;
+                border-radius: 8px;
+                padding: 20px;
+                text-align: center;
+                margin: 20px 0;
+            }}
+            .otp-code {{
+                font-size: 32px;
+                font-weight: bold;
+                color: #dc2626;
+                letter-spacing: 8px;
+                margin: 10px 0;
+            }}
+            .footer {{
+                text-align: center;
+                margin-top: 20px;
+                color: #64748b;
+                font-size: 14px;
+            }}
+            .warning {{
+                background-color: #fef3c7;
+                border-left: 4px solid #f59e0b;
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 4px;
+            }}
+            .warning p {{
+                margin: 0;
+                color: #92400e;
+                font-weight: 500;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🔐 Scholarship Portal</h1>
+                <p>Password Reset Request</p>
+            </div>
+            
+            <div class="content">
+                <h2>Reset Your Password</h2>
+                <p>We received a request to reset your password. If you did not request this, please ignore this email.</p>
+                
+                <div class="otp-box">
+                    <p>Your password reset code is:</p>
+                    <div class="otp-code">{otp_code}</div>
+                    <p style="margin: 0; color: #64748b; font-size: 14px;">This code expires in 10 minutes</p>
+                </div>
+                
+                <p>Enter this code on the password reset page to create a new password for your account.</p>
+                
+                <div class="warning">
+                    <p>⚠️ If you did not request this password reset, please secure your account immediately by changing your password.</p>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>This email was sent from Scholarship Portal.</p>
+                <p>If you have questions, please contact our support team.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+
+def get_password_reset_plain_template(otp_code):
+    """Generate plain text template for password reset email"""
+    return f"""
+🔐 SCHOLARSHIP PORTAL - PASSWORD RESET
+
+Reset Your Password
+
+We received a request to reset your password. If you did not request this, please ignore this email.
+
+Your password reset code is: {otp_code}
+
+This code expires in 10 minutes.
+
+Enter this code on the password reset page to create a new password for your account.
+
+⚠️ IMPORTANT: If you did not request this password reset, please secure your account immediately by changing your password.
+
+This email was sent from Scholarship Portal.
+If you have questions, please contact our support team.
+    """
+
+
+# Alias for backward compatibility and ease of use
+send_password_reset_otp = send_password_reset_email_aws_ses

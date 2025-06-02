@@ -21,11 +21,14 @@ urlpatterns = [
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('auth/me/', views.UserViewSet.as_view({'get': 'me'}), name='me'),
     path('auth/change-password/', views.UserViewSet.as_view({'post': 'change_password'}), name='change-password'),
-    
-    # Email Verification endpoints
+      # Email Verification endpoints
     path('auth/send-verification-email/', views.send_verification_email, name='send_verification_email'),
     path('auth/verify-otp/', views.verify_otp, name='verify_otp'),
     path('auth/resend-otp/', views.resend_otp, name='resend_otp'),
+    
+    # Password Reset endpoints
+    path('auth/password-reset-request/', views.password_reset_request, name='password_reset_request'),
+    path('auth/password-reset-confirm/', views.password_reset_confirm, name='password_reset_confirm'),
     
     # Social Authentication endpoints
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),

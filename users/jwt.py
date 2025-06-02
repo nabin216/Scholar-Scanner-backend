@@ -1,6 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
+from .throttling import LoginRateThrottle
 
 User = get_user_model()
 
@@ -51,3 +52,4 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     Custom view to use our enhanced token serializer
     """
     serializer_class = CustomTokenObtainPairSerializer
+    throttle_classes = [LoginRateThrottle]

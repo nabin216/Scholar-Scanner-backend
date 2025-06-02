@@ -117,8 +117,18 @@ class ScholarshipApplication(models.Model):
 class EmailVerification(models.Model):
     """Model to store email verification OTP codes"""
     
+    VERIFICATION_TYPE_CHOICES = [
+        ('email_verification', 'Email Verification'),
+        ('password_reset', 'Password Reset'),
+    ]
+    
     email = models.EmailField()
     otp_code = models.CharField(max_length=6)
+    verification_type = models.CharField(
+        max_length=20, 
+        choices=VERIFICATION_TYPE_CHOICES, 
+        default='email_verification'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
     is_used = models.BooleanField(default=False)
@@ -140,15 +150,23 @@ class EmailVerification(models.Model):
         return not self.is_used and not self.is_expired() and not self.is_verified
     
     @classmethod
-    def generate_otp(cls, email):
-        """Generate a new OTP for the given email"""
+    def generate_otp(cls, email, verification_type='email_verification'):
+        """Generate a new OTP for the given email and verification type"""
         from django.conf import settings
         
-        # Mark any existing OTPs as used
-        cls.objects.filter(email=email, is_used=False).update(is_used=True)
+        # Mark any existing OTPs of the same type as used
+        cls.objects.filter(
+            email=email, 
+            verification_type=verification_type, 
+            is_used=False
+        ).update(is_used=True)
         
         # Generate new OTP
         otp_length = getattr(settings, 'OTP_LENGTH', 6)
         otp_code = ''.join(random.choices(string.digits, k=otp_length))
         
-        return cls.objects.create(email=email, otp_code=otp_code)
+        return cls.objects.create(
+            email=email, 
+            otp_code=otp_code, 
+            verification_type=verification_type
+        )

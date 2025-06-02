@@ -26,22 +26,24 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p7d(q^64hkzvn-p%n)bd%&$ptg1c+zs*knhhu-ar5b4(w4*ioj'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-p7d(q^64hkzvn-p%n)bd%&$ptg1c+zs*knhhu-ar5b4(w4*ioj')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+# Parse ALLOWED_HOSTS from environment variable or use default
+allowed_hosts_str = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.strip()]
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:3001",
-]
+CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False').lower() == 'true'
+# Get origins from environment variable or use default
+cors_origins_str = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins_str.split(',') if origin.strip()]
 CORS_ALLOW_CREDENTIALS = True
+
+# Frontend URL for email templates and redirects
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 
 
 # Application definition
@@ -135,23 +137,31 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
     ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': os.getenv('THROTTLE_RATE_ANON', '100/day'),  # Limit anonymous users
+        'user': os.getenv('THROTTLE_RATE_USER', '1000/day'),  # Limit authenticated users
+        'auth': os.getenv('THROTTLE_RATE_AUTH', '5/minute'),  # Limit authentication attempts
+        'login': os.getenv('THROTTLE_RATE_LOGIN', '5/minute'),  # Limit login attempts
+        'registration': os.getenv('THROTTLE_RATE_REGISTRATION', '10/day'),  # Limit registration attempts
+        'email_verification': os.getenv('THROTTLE_RATE_EMAIL_VERIFICATION', '3/hour'),  # Limit email verification requests
+    },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # Increased lifetime for better user experience
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # Allow refresh for a week
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('JWT_ACCESS_TOKEN_LIFETIME', '60'))),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=int(os.getenv('JWT_REFRESH_TOKEN_LIFETIME', '10080'))),  # Default: 7 days
     'ROTATE_REFRESH_TOKENS': True,                   # Generate new refresh token when refreshed
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,                       # Update last login timestamp
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
+    'SIGNING_KEY': os.getenv('JWT_SECRET_KEY', SECRET_KEY),
     'VERIFYING_KEY': None,
     'AUTH_HEADER_TYPES': ('Bearer',),
     'USER_ID_FIELD': 'id',
@@ -160,6 +170,11 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
     'JTI_CLAIM': 'jti',
     'TOKEN_USER_CLASS': 'users.User',                # Our custom user model
+    # Additional security settings
+    'AUTH_COOKIE': 'access_token',                  # Cookie name for storing the token
+    'AUTH_COOKIE_SECURE': not DEBUG,                # Only send over HTTPS in production 
+    'AUTH_COOKIE_HTTP_ONLY': True,                  # Prevent JavaScript access to cookies
+    'AUTH_COOKIE_SAMESITE': 'Lax',                  # Helps prevent CSRF attacks
 }
 
 ROOT_URLCONF = 'scholarships_api.urls'
@@ -201,9 +216,16 @@ DATABASES = {
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'OPTIONS': {
+            'user_attributes': ('email', 'full_name'),
+            'max_similarity': 0.7,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -254,14 +276,15 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Google OAuth Settings
-GOOGLE_CLIENT_ID = '604558986475-755fbv5bvlnamnhdm3fts9ck54ujbkv4.apps.googleusercontent.com'
-GOOGLE_CLIENT_SECRET = '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'
+# Google OAuth credentials from environment variables
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
 
 # OAuth configuration
 GOOGLE_OAUTH = {
     'client_id': GOOGLE_CLIENT_ID,
     'client_secret': GOOGLE_CLIENT_SECRET,
-    'redirect_uri': 'http://localhost:3001/Authentication/google-callback',
+    'redirect_uri': os.getenv('GOOGLE_OAUTH_REDIRECT_URI', 'http://localhost:3001/Authentication/google-callback'),
     'scope': [
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile',
@@ -295,11 +318,11 @@ else:
 
 # AWS SES Configuration
 AWS_SES_REGION = os.environ.get('AWS_SES_REGION', 'eu-north-1')
-AWS_SES_FROM_EMAIL = os.environ.get('AWS_SES_FROM_EMAIL', 'asadurzamannabin@gmail.com')
+AWS_SES_FROM_EMAIL = os.environ.get('AWS_SES_FROM_EMAIL', 'asadurzamannabin216@gmail.com')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
 
-DEFAULT_FROM_EMAIL = f'Scholarship Portal <asadurzamannabin@gmail.com>'
+DEFAULT_FROM_EMAIL = f'Scholarship Portal <{os.environ.get("AWS_SES_FROM_EMAIL", "noreply@scholarshipportal.com")}>'
 
 # OTP Configuration
 OTP_EXPIRE_MINUTES = 10  # OTP expires in 10 minutes
@@ -320,3 +343,18 @@ CKEDITOR_CONFIGS = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Security Settings
+# Only enable these in production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() == 'true'
+    SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'True').lower() == 'true'
+    CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'True').lower() == 'true'
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))  # Default: 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'True').lower() == 'true'
+    SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD', 'True').lower() == 'true'
+    
+# Always enable these security headers regardless of environment
+SECURE_CONTENT_TYPE_NOSNIFF = os.getenv('SECURE_CONTENT_TYPE_NOSNIFF', 'True').lower() == 'true'
+SECURE_BROWSER_XSS_FILTER = os.getenv('SECURE_BROWSER_XSS_FILTER', 'True').lower() == 'true'
+X_FRAME_OPTIONS = os.getenv('X_FRAME_OPTIONS', 'DENY')

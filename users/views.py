@@ -1,18 +1,25 @@
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, generics, permissions, status
 from rest_framework.response import Response
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from datetime import timedelta
+import logging
+from .throttling import RegistrationRateThrottle, EmailVerificationRateThrottle
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 from .models import UserProfile, SavedScholarship, ScholarshipApplication, EmailVerification
 from .serializers import (
     UserSerializer, UserRegistrationSerializer, ChangePasswordSerializer,
     SavedScholarshipSerializer, ScholarshipApplicationSerializer, UserProfileSerializer,
-    EmailVerificationSerializer, OTPVerificationSerializer
+    EmailVerificationSerializer, OTPVerificationSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 )
 from .permissions import IsOwnerOrReadOnly
-from .email_service import send_verification_email as send_email_with_otp, send_welcome_email
+from .email_service import send_verification_email as send_email_with_otp, send_welcome_email, send_password_reset_otp
 
 User = get_user_model()
 
@@ -83,6 +90,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
+    throttle_classes = [RegistrationRateThrottle]
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -110,8 +118,9 @@ class RegisterView(generics.CreateAPIView):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([EmailVerificationRateThrottle])
 def send_verification_email(request):
-    """Send OTP verification email"""
+    """Send OTP verification email with rate limiting"""
     serializer = EmailVerificationSerializer(data=request.data)
     
     if serializer.is_valid():
@@ -122,7 +131,40 @@ def send_verification_email(request):
             return Response(
                 {'error': 'This email is already registered. Please try logging in instead.'},
                 status=status.HTTP_400_BAD_REQUEST
-            )        # Generate and send OTP
+            )
+        
+        try:
+            # Check for recent OTPs for this email that might still be valid
+            recent_otp = EmailVerification.objects.filter(
+                email=email,
+                is_used=False,
+                created_at__gte=timezone.now() - timedelta(minutes=9)  # Just under the 10-minute expiry
+            ).first()
+            
+            if recent_otp:
+                time_elapsed = timezone.now() - recent_otp.created_at
+                time_elapsed_seconds = time_elapsed.total_seconds()
+                remaining_seconds = 60 - time_elapsed_seconds
+                
+                # If OTP was generated less than 60 seconds ago, tell user to wait
+                if remaining_seconds > 0:
+                    return Response({
+                        'message': f'A verification code was already sent to {email}. Please wait {int(remaining_seconds)} seconds before requesting another code.',
+                        'canResend': False,
+                        'waitTime': int(remaining_seconds)
+                    }, status=status.HTTP_200_OK)
+                
+                # If OTP is between 60 seconds and 9 minutes old, suggest using existing code
+                return Response({
+                    'message': f'A verification code was already sent to {email}. Please check your inbox or spam folder.',
+                    'canResend': True,
+                    'email': email
+                }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            logger.error(f"Error checking recent OTPs: {e}")
+        
+        # Generate and send OTP
         otp_obj = EmailVerification.generate_otp(email)
         
         if send_email_with_otp(email, otp_obj.otp_code):
@@ -179,8 +221,9 @@ def verify_otp(request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([EmailVerificationRateThrottle])
 def resend_otp(request):
-    """Resend OTP verification email"""
+    """Resend OTP verification email with rate limiting"""
     serializer = EmailVerificationSerializer(data=request.data)
     
     if serializer.is_valid():
@@ -191,7 +234,31 @@ def resend_otp(request):
             return Response(
                 {'error': 'This email is already registered.'},
                 status=status.HTTP_400_BAD_REQUEST
-            )        # Generate new OTP
+            )
+        
+        try:
+            # Check for very recent OTPs for this email to prevent hammering the endpoint
+            recent_otp = EmailVerification.objects.filter(
+                email=email,
+                is_used=False,
+                created_at__gte=timezone.now() - timedelta(seconds=30)  # Shorter window for resend
+            ).first()
+            
+            if recent_otp:
+                time_elapsed = timezone.now() - recent_otp.created_at
+                time_elapsed_seconds = time_elapsed.total_seconds()
+                remaining_seconds = 30 - time_elapsed_seconds
+                
+                if remaining_seconds > 0:
+                    return Response({
+                        'message': f'Please wait {int(remaining_seconds)} seconds before requesting another code.',
+                        'waitTime': int(remaining_seconds)
+                    }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+        
+        except Exception as e:
+            logger.error(f"Error checking recent OTPs: {e}")
+            
+        # Generate new OTP
         otp_obj = EmailVerification.generate_otp(email)
         
         if send_email_with_otp(email, otp_obj.otp_code):
@@ -232,3 +299,98 @@ class ScholarshipApplicationViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@throttle_classes([EmailVerificationRateThrottle])
+def password_reset_request(request):
+    """Request password reset by sending OTP to email"""
+    serializer = PasswordResetRequestSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        
+        try:
+            # Generate OTP for password reset
+            otp_obj = EmailVerification.generate_otp(email, 'password_reset')
+            
+            # Send password reset email
+            email_sent = send_password_reset_otp(email, otp_obj.otp_code)
+            
+            if email_sent:
+                return Response({
+                    'message': 'Password reset code has been sent to your email address.',
+                    'email': email
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {'error': 'Failed to send password reset email. Please try again.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+                
+        except Exception as e:
+            logger.error(f"Password reset request failed for {email}: {e}")
+            return Response(
+                {'error': 'An error occurred while processing your request.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+    """Confirm password reset with OTP and set new password"""
+    serializer = PasswordResetConfirmSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        email = serializer.validated_data['email']
+        otp_code = serializer.validated_data['otp_code']
+        new_password = serializer.validated_data['new_password']
+        
+        try:
+            # Get the user
+            user = User.objects.get(email=email)
+            
+            # Mark OTP as used
+            otp_obj = EmailVerification.objects.filter(
+                email=email,
+                otp_code=otp_code,
+                verification_type='password_reset',
+                is_used=False
+            ).latest('created_at')
+            
+            otp_obj.is_used = True
+            otp_obj.is_verified = True
+            otp_obj.save()
+            
+            # Update user password
+            user.set_password(new_password)
+            user.save()
+            
+            logger.info(f"Password reset successful for user: {email}")
+            
+            return Response({
+                'message': 'Password has been reset successfully. You can now log in with your new password.'
+            }, status=status.HTTP_200_OK)
+            
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User not found.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except EmailVerification.DoesNotExist:
+            return Response(
+                {'error': 'Invalid or expired OTP code.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.error(f"Password reset confirmation failed for {email}: {e}")
+            return Response(
+                {'error': 'An error occurred while resetting your password.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
