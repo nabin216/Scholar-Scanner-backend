@@ -5,7 +5,7 @@ This guide connects your Next.js frontend (GitHub Pages/Custom Domain) with your
 
 **Current Setup:**
 - **Frontend**: https://scholarscanner.com (GitHub Pages)
-- **Backend**: http://15.206.225.71 (AWS EC2)
+- **Backend**: https://api.scholarscanner.com (AWS EC2 with SSL) ✅
 
 ---
 
@@ -33,21 +33,21 @@ Add/Update these values:
 # Django Core
 SECRET_KEY=your-generated-secret-key-here
 DEBUG=False
-ALLOWED_HOSTS=15.206.225.71,scholarscanner.com,www.scholarscanner.com
+ALLOWED_HOSTS=api.scholarscanner.com,scholarscanner.com,www.scholarscanner.com
 
 # CORS - Allow your frontend domains
 CORS_ALLOWED_ORIGINS=https://scholarscanner.com,https://www.scholarscanner.com,https://nabin216.github.io
 
 # CSRF Trusted Origins
-CSRF_TRUSTED_ORIGINS=https://scholarscanner.com,https://www.scholarscanner.com,https://nabin216.github.io,http://15.206.225.71
+CSRF_TRUSTED_ORIGINS=https://scholarscanner.com,https://www.scholarscanner.com,https://nabin216.github.io,https://api.scholarscanner.com
 
 # Frontend URL
 FRONTEND_URL=https://scholarscanner.com
 
-# Security (set to True after HTTPS setup)
-SECURE_SSL_REDIRECT=False
-SESSION_COOKIE_SECURE=False
-CSRF_COOKIE_SECURE=False
+# Security (HTTPS is enabled)
+SECURE_SSL_REDIRECT=True
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
 ```
 
 Generate SECRET_KEY if needed:
@@ -85,8 +85,8 @@ curl http://15.206.225.71/api/
 ### 2.1 Frontend Configuration Already Updated ✅
 The GitHub Actions workflow now uses:
 ```yaml
-NEXT_PUBLIC_API_URL: http://15.206.225.71/api
-NEXT_PUBLIC_BASE_URL: http://15.206.225.71
+NEXT_PUBLIC_API_URL: https://api.scholarscanner.com/api
+NEXT_PUBLIC_BASE_URL: https://api.scholarscanner.com
 ```
 
 ### 2.2 Trigger Deployment
@@ -167,8 +167,8 @@ NEXT_PUBLIC_BASE_URL: https://api.scholarscanner.com
 ### 4.1 Test Backend API
 ```bash
 # From your local machine
-curl http://15.206.225.71/api/
-curl http://15.206.225.71/api/scholarships/
+curl https://api.scholarscanner.com/api/
+curl https://api.scholarscanner.com/api/scholarships/
 
 # Should return JSON data
 ```
@@ -178,8 +178,8 @@ curl http://15.206.225.71/api/scholarships/
 2. Open Browser DevTools (F12)
 3. Go to **Network** tab
 4. Interact with the site (search scholarships, etc.)
-5. Look for API calls to `http://15.206.225.71/api/`
-6. Verify **Status: 200 OK**
+5. Look for API calls to `https://api.scholarscanner.com/api/`
+6. Verify **Status: 200 OK** and **🔒 HTTPS secure**
 
 ### 4.3 Test CORS
 Check browser console for CORS errors:
@@ -191,7 +191,7 @@ Check browser console for CORS errors:
 ## 🐛 Troubleshooting
 
 ### Issue 1: CORS Error
-**Error**: `Access to fetch at 'http://15.206.225.71/api/' from origin 'https://scholarscanner.com' has been blocked by CORS policy`
+**Error**: `Access to fetch at 'https://api.scholarscanner.com/api/' from origin 'https://scholarscanner.com' has been blocked by CORS policy`
 
 **Solution**:
 ```bash
@@ -236,10 +236,10 @@ CSRF_TRUSTED_ORIGINS=https://scholarscanner.com,https://nabin216.github.io
 sudo systemctl restart scholarship-backend
 ```
 
-### Issue 4: Mixed Content Warning
+### Issue 4: Mixed Content Warning ✅ RESOLVED
 **Warning**: `Mixed Content: The page at 'https://...' was loaded over HTTPS, but requested an insecure resource 'http://...'`
 
-**Solution**: Set up HTTPS for backend (see Step 3)
+**Solution**: ✅ Already using HTTPS with api.scholarscanner.com domain
 
 ### Issue 5: Backend Returns 500 Error
 **Solution**:
@@ -275,7 +275,8 @@ sudo tail -f /home/ubuntu/scholarship-portal/scholarship-backend/logs/gunicorn-e
          ▼
 ┌─────────────────────────┐
 │  AWS EC2                │
-│  15.206.225.71          │
+│  api.scholarscanner.com │
+│  (15.206.225.71)        │
 │  ┌─────────────────┐    │
 │  │  Nginx (80)     │    │
 │  └────────┬────────┘    │
@@ -310,7 +311,7 @@ sudo tail -f /var/log/nginx/error.log
 
 # Test API
 curl http://localhost:8000/api/
-curl http://15.206.225.71/api/
+curl https://api.scholarscanner.com/api/
 
 # Update code
 cd /home/ubuntu/scholarship-portal
@@ -325,28 +326,30 @@ sudo systemctl restart scholarship-backend
 ### Local Testing Commands
 ```bash
 # Test backend from local machine
-curl http://15.206.225.71/api/
+curl https://api.scholarscanner.com/api/
 
 # Test with authentication
-curl -H "Authorization: Bearer YOUR_TOKEN" http://15.206.225.71/api/scholarships/
+curl -H "Authorization: Bearer YOUR_TOKEN" https://api.scholarscanner.com/api/scholarships/
 ```
 
 ---
 
 ## ✅ Verification Checklist
 
+- [x] Backend hosted at api.scholarscanner.com with SSL ✅
 - [ ] Backend .env updated with correct CORS_ALLOWED_ORIGINS
-- [ ] Backend .env includes CSRF_TRUSTED_ORIGINS
+- [ ] Backend .env includes CSRF_TRUSTED_ORIGINS and api.scholarscanner.com
 - [ ] Backend .env has correct ALLOWED_HOSTS
+- [ ] Backend .env has SSL security enabled (SECURE_SSL_REDIRECT=True)
 - [ ] Backend service restarted
-- [ ] Backend API accessible: http://15.206.225.71/api/
+- [ ] Backend API accessible: https://api.scholarscanner.com/api/
 - [ ] Frontend workflow updated with backend URL
 - [ ] Frontend deployed successfully
 - [ ] Frontend can fetch data from backend (check DevTools Network tab)
 - [ ] No CORS errors in browser console
+- [ ] No Mixed Content warnings (both using HTTPS) ✅
 - [ ] Test authentication flow (login/register)
 - [ ] Test scholarship search/filtering
-- [ ] (Optional) HTTPS setup for backend
 
 ---
 

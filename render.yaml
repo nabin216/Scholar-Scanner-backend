@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: scholarship-backend
+    env: python
+    plan: free
+    # With rootDir set, commands run from scholarship-backend/
+    buildCommand: "pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput"
+    startCommand: "gunicorn scholarships_api.wsgi:application --bind 0.0.0.0:$PORT --workers=3"
+    autoDeploy: true
+    rootDir: scholarship-backend
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "scholarship-backend.onrender.com"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "https://nabin216.github.io,https://nabin216.github.io/scholarship-portal,https://nabin216.github.io/scholarship-scanner-frontend"
+      - key: FRONTEND_URL
+        value: "https://nabin216.github.io/scholarship-portal"
+      - key: AWS_SES_REGION
+        value: "eu-north-1"
+  healthCheckPath: /admin/login/
+    disk:
+      name: staticfiles
+      mountPath: /opt/render/project/src/scholarship-backend/staticfiles
+databases:
+  - name: scholarship-db
+    plan: free
+    region: ohio
+    postgresMajorVersion: 15
