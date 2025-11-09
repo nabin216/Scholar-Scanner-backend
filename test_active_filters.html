@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Filters Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Active Filters Test</h1>
+        
+        <!-- Simulated Active Filters Section -->
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="text-sm font-medium text-gray-700">Active Filters:</span>
+                <button 
+                    onclick="clearAllFilters()"
+                    class="text-xs text-red-600 hover:text-red-800 transition-colors font-medium"
+                >
+                    Clear All (3)
+                </button>
+            </div>
+            <div class="flex flex-wrap gap-2" id="activeFilters">
+                <!-- Country Filter -->
+                <div class="bg-blue-50 text-blue-800 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 border border-blue-200 hover:bg-blue-100 transition-colors">
+                    <span class="font-medium">Country:</span>
+                    <span>Canada</span>
+                    <button 
+                        onclick="removeFilter('country')"
+                        class="hover:text-blue-600 hover:bg-blue-200 rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold transition-colors"
+                        title="Remove Country filter"
+                    >
+                        ×
+                    </button>
+                </div>
+                
+                <!-- Level Filter -->
+                <div class="bg-blue-50 text-blue-800 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 border border-blue-200 hover:bg-blue-100 transition-colors">
+                    <span class="font-medium">Level:</span>
+                    <span>Bachelor's</span>
+                    <button 
+                        onclick="removeFilter('level')"
+                        class="hover:text-blue-600 hover:bg-blue-200 rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold transition-colors"
+                        title="Remove Level filter"
+                    >
+                        ×
+                    </button>
+                </div>
+                
+                <!-- Deadline Filter -->
+                <div class="bg-blue-50 text-blue-800 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 border border-blue-200 hover:bg-blue-100 transition-colors">
+                    <span class="font-medium">Deadline Before:</span>
+                    <span>12/31/2025</span>
+                    <button 
+                        onclick="removeFilter('deadline')"
+                        class="hover:text-blue-600 hover:bg-blue-200 rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold transition-colors"
+                        title="Remove Deadline Before filter"
+                    >
+                        ×
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulated Save Button Test -->
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <h2 class="text-lg font-semibold mb-4">Save Button Test</h2>
+            
+            <!-- Mobile Layout -->
+            <div class="block sm:hidden mb-4">
+                <h3 class="text-sm font-medium mb-2">Mobile Layout:</h3>
+                <div class="px-3 pb-3">
+                    <button 
+                        onclick="toggleSave('mobile')"
+                        id="mobileSaveBtn"
+                        class="w-full py-2 rounded-md text-sm font-medium transition-colors bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+                    >
+                        💾 Save
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Desktop Layout -->
+            <div class="hidden sm:block">
+                <h3 class="text-sm font-medium mb-2">Desktop Layout:</h3>
+                <div class="px-4 pb-4 pt-0 flex justify-end">
+                    <button 
+                        onclick="toggleSave('desktop')"
+                        id="desktopSaveBtn"
+                        class="py-2 px-4 rounded-md text-sm font-medium transition-colors self-end float-right bg-yellow-400 hover:bg-yellow-500 text-gray-900"
+                    >
+                        💾 Save
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Display -->
+        <div id="status" class="mt-4 text-center text-sm text-gray-600"></div>
+    </div>
+
+    <script>
+        let savedStates = {
+            mobile: false,
+            desktop: false
+        };
+
+        function removeFilter(filterType) {
+            const filterContainer = document.getElementById('activeFilters');
+            const filters = filterContainer.children;
+            
+            // Find and remove the specific filter
+            for (let i = 0; i < filters.length; i++) {
+                const filter = filters[i];
+                const filterText = filter.querySelector('span').textContent.toLowerCase();
+                
+                if (filterText.includes(filterType.toLowerCase())) {
+                    filter.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => {
+                        filter.remove();
+                        updateClearAllButton();
+                        updateStatus(`${filterType} filter removed`);
+                    }, 300);
+                    break;
+                }
+            }
+        }
+
+        function clearAllFilters() {
+            const filterContainer = document.getElementById('activeFilters');
+            filterContainer.innerHTML = '';
+            updateClearAllButton();
+            updateStatus('All filters cleared');
+        }
+
+        function updateClearAllButton() {
+            const filterContainer = document.getElementById('activeFilters');
+            const clearAllBtn = document.querySelector('button[onclick="clearAllFilters()"]');
+            const count = filterContainer.children.length;
+            
+            if (count === 0) {
+                clearAllBtn.style.display = 'none';
+            } else {
+                clearAllBtn.textContent = `Clear All (${count})`;
+            }
+        }
+
+        function toggleSave(layout) {
+            const btn = document.getElementById(`${layout}SaveBtn`);
+            const isCurrentlySaved = savedStates[layout];
+            
+            if (isCurrentlySaved) {
+                // Change to unsaved state
+                btn.className = btn.className.replace('bg-yellow-500 hover:bg-yellow-600 text-white', 'bg-yellow-400 hover:bg-yellow-500 text-gray-900');
+                btn.textContent = '💾 Save';
+                savedStates[layout] = false;
+                updateStatus(`${layout} - Scholarship unsaved`);
+            } else {
+                // Change to saved state
+                btn.className = btn.className.replace('bg-yellow-400 hover:bg-yellow-500 text-gray-900', 'bg-yellow-500 hover:bg-yellow-600 text-white');
+                btn.textContent = '✓ Saved';
+                savedStates[layout] = true;
+                updateStatus(`${layout} - Scholarship saved`);
+            }
+        }
+
+        function updateStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'mt-4 text-center text-sm text-green-600 font-medium';
+            
+            setTimeout(() => {
+                status.textContent = '';
+                status.className = 'mt-4 text-center text-sm text-gray-600';
+            }, 2000);
+        }
+
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: scale(1); }
+                to { opacity: 0; transform: scale(0.8); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

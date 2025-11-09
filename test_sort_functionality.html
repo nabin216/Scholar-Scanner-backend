@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sort Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Sort Functionality Test</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="mb-4">
+                <h2 class="text-lg font-semibold">Test Data:</h2>
+                <div id="original-data" class="bg-gray-100 p-4 rounded mt-2"></div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">Sort by:</label>
+                <select id="sort-field" class="border rounded px-3 py-2 mr-2">
+                    <option value="deadline">Deadline</option>
+                    <option value="title">Title</option>
+                    <option value="country">Country</option>
+                    <option value="created_at">Created At</option>
+                </select>
+                <select id="sort-direction" class="border rounded px-3 py-2">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+                <button id="sort-btn" class="bg-blue-500 text-white px-4 py-2 rounded ml-2">Sort</button>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-semibold">Sorted Results:</h2>
+                <div id="sorted-data" class="bg-blue-50 p-4 rounded mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data similar to what comes from the API
+        const sampleScholarships = [
+            {
+                id: 1,
+                title: "Excellence Scholarship",
+                deadline: "2024-06-15",
+                created_at: "2024-01-15T10:00:00Z",
+                country_name: "Canada",
+                open_date: "2024-03-01"
+            },
+            {
+                id: 2,
+                title: "Academic Achievement Award",
+                deadline: "2024-05-20",
+                created_at: "2024-02-10T09:00:00Z",
+                country_name: "Australia",
+                open_date: "2024-02-15"
+            },
+            {
+                id: 3,
+                title: "Research Grant",
+                deadline: "2024-07-30",
+                created_at: "2024-01-20T11:00:00Z",
+                country_name: "United Kingdom",
+                open_date: "2024-04-01"
+            }
+        ];
+
+        // Display original data
+        document.getElementById('original-data').innerHTML = 
+            sampleScholarships.map(s => 
+                `<div class="mb-2"><strong>${s.title}</strong> - Deadline: ${s.deadline} - Country: ${s.country_name} - Created: ${s.created_at}</div>`
+            ).join('');
+
+        // Sort function (same logic as in the React component)
+        function sortScholarships(scholarships, field, direction) {
+            return [...scholarships].sort((a, b) => {
+                console.log(`Sorting by ${field} (${direction}):`, {
+                    a: a[field],
+                    b: b[field]
+                });
+                
+                switch (field) {
+                    case 'deadline':
+                        const dateA = new Date(a.deadline).getTime();
+                        const dateB = new Date(b.deadline).getTime();
+                        console.log('Date comparison:', { dateA, dateB });
+                        return direction === 'asc' ? dateA - dateB : dateB - dateA;
+                    case 'title':
+                        return direction === 'asc' 
+                            ? a.title.localeCompare(b.title)
+                            : b.title.localeCompare(a.title);
+                    case 'country':
+                        return direction === 'asc' 
+                            ? (a.country_name || '').localeCompare(b.country_name || '')
+                            : (b.country_name || '').localeCompare(a.country_name || '');
+                    case 'created_at':
+                        const createdA = new Date(a.created_at).getTime();
+                        const createdB = new Date(b.created_at).getTime();
+                        return direction === 'asc' ? createdA - createdB : createdB - createdA;
+                    default:
+                        return 0;
+                }
+            });
+        }
+
+        // Sort button event
+        document.getElementById('sort-btn').addEventListener('click', () => {
+            const field = document.getElementById('sort-field').value;
+            const direction = document.getElementById('sort-direction').value;
+            
+            console.log('Sorting by:', field, direction);
+            
+            const sorted = sortScholarships(sampleScholarships, field, direction);
+            
+            document.getElementById('sorted-data').innerHTML = 
+                sorted.map(s => 
+                    `<div class="mb-2"><strong>${s.title}</strong> - Deadline: ${s.deadline} - Country: ${s.country_name} - Created: ${s.created_at}</div>`
+                ).join('');
+                
+            console.log('Sorted result:', sorted);
+        });
+
+        // Initial sort
+        document.getElementById('sort-btn').click();
+    </script>
+</body>
+</html>
