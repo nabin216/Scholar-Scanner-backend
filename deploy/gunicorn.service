@@ -1,0 +1,27 @@
+[Unit]
+Description=Scholarship Portal Django Gunicorn Service
+After=network.target
+
+[Service]
+Type=notify
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/scholarship-backend
+Environment="PATH=/home/ubuntu/scholarship-backend/.venv/bin"
+EnvironmentFile=/home/ubuntu/scholarship-backend/.env
+ExecStart=/home/ubuntu/scholarship-backend/.venv/bin/gunicorn \
+    --workers 3 \
+    --bind unix:/home/ubuntu/scholarship-backend/gunicorn.sock \
+    --timeout 120 \
+    --access-logfile /home/ubuntu/scholarship-backend/logs/gunicorn-access.log \
+    --error-logfile /home/ubuntu/scholarship-backend/logs/gunicorn-error.log \
+    --log-level info \
+    scholarships_api.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

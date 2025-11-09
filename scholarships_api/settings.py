@@ -35,6 +35,15 @@ DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 allowed_hosts_str = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver')
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.strip()]
 
+# Append Render provided hostname if available (in case ALLOWED_HOSTS not explicitly set)
+render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if render_host and render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_host)
+
+# CSRF trusted origins for Render and frontend
+csrf_origins_str = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://localhost:3000,https://127.0.0.1:3000')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_str.split(',') if origin.strip()]
+
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False').lower() == 'true'
 # Get origins from environment variable or use default
@@ -76,7 +85,6 @@ INSTALLED_APPS = [
     'scholarships',
     'users',  # Our custom users app
 ]
-
 # Specify the custom user model
 AUTH_USER_MODEL = 'users.User'
 
@@ -202,15 +210,19 @@ WSGI_APPLICATION = 'scholarships_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-import dj_database_url
+# Make dj-database-url optional for local development
+try:
+    import dj_database_url as _djdb
+except ImportError:
+    _djdb = None
 
 # Use DATABASE_URL if available (production), otherwise use SQLite (development)
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-if DATABASE_URL:
+if DATABASE_URL and _djdb:
     # Production database (PostgreSQL via DATABASE_URL)
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+        'default': _djdb.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
     }
 else:
     # Development database (SQLite)
@@ -368,6 +380,9 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000'))  # Default: 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'True').lower() == 'true'
     SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD', 'True').lower() == 'true'
+
+    # Honor X-Forwarded-Proto from Render's proxy for request.is_secure()
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
 # Always enable these security headers regardless of environment
 SECURE_CONTENT_TYPE_NOSNIFF = os.getenv('SECURE_CONTENT_TYPE_NOSNIFF', 'True').lower() == 'true'
