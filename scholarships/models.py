@@ -75,7 +75,7 @@ class Scholarship(models.Model):
     fund_type = models.ManyToManyField(FundType, related_name='scholarships')
     sponsor_type = models.ManyToManyField(SponsorType, related_name='scholarships')
     language_requirement = models.ManyToManyField(LanguageRequirement, related_name='scholarships', blank=True)
-    image = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to='scholarships/', blank=True, null=True)
     is_featured = models.BooleanField(default=False)
     scholarship_category = models.ManyToManyField(ScholarshipCategory, related_name='scholarships')
     application_url = models.URLField(blank=True)
