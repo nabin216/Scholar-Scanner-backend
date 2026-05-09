@@ -52,13 +52,13 @@ def send_otp_email_aws_ses(email, otp_code):
         
         # Send email
         response = ses_client.send_email(
-            Source=f'Scholarship Portal <{from_email}>',
+            Source=f'ScholarScanner <{from_email}>',
             Destination={
                 'ToAddresses': [email],
             },
             Message={
                 'Subject': {
-                    'Data': 'Verify your email - Scholarship Portal',
+                    'Data': 'Verify your email - ScholarScanner',
                     'Charset': 'UTF-8'
                 },
                 'Body': {
@@ -100,7 +100,7 @@ def get_otp_html_template(otp_code):
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Email Verification - Scholarship Portal</title>
+        <title>Email Verification - ScholarScanner</title>
         <style>
             body {{
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -204,12 +204,12 @@ def get_otp_html_template(otp_code):
         <div class="container">
             <div class="header">
                 <div class="logo">🎓</div>
-                <h1>Scholarship Portal</h1>
+                <h1>ScholarScanner</h1>
                 <p>Email Verification Required</p>
             </div>
             
             <div class="content">
-                <h2>Welcome to Scholarship Portal!</h2>
+                <h2>Welcome to ScholarScanner!</h2>
                 <p>Thank you for joining our community! To complete your registration and start exploring amazing scholarship opportunities, please verify your email address.</p>
                 
                 <div class="otp-container">
@@ -228,9 +228,9 @@ def get_otp_html_template(otp_code):
             </div>
             
             <div class="footer">
-                <p><strong>Scholarship Portal</strong></p>
+                <p><strong>ScholarScanner</strong></p>
                 <p>Making education accessible for everyone</p>
-                <p>© 2025 Scholarship Portal. All rights reserved.</p>
+                <p>© 2025 ScholarScanner. All rights reserved.</p>
             </div>
         </div>
     </body>
@@ -243,7 +243,7 @@ def get_otp_plain_template(otp_code):
     return f"""
 🎓 SCHOLARSHIP PORTAL - Email Verification
 
-Welcome to Scholarship Portal!
+Welcome to ScholarScanner!
 
 Thank you for joining our community! To complete your registration and start exploring scholarship opportunities, please verify your email address.
 
@@ -258,17 +258,17 @@ Enter this 6-digit code on the verification page to activate your account.
 Need help? Contact us at support@scholarshipportal.com
 
 Best regards,
-Scholarship Portal Team
+ScholarScanner Team
 
 ---
-© 2025 Scholarship Portal. All rights reserved.
+© 2025 ScholarScanner. All rights reserved.
     """
 
 
 def send_otp_email(email, otp_code):
     """Send OTP verification email to user (fallback method using Django's email backend)"""
     
-    subject = 'Verify your email - Scholarship Portal'
+    subject = 'Verify your email - ScholarScanner'
     
     # Create HTML email content
     html_message = f"""
@@ -276,7 +276,7 @@ def send_otp_email(email, otp_code):
     <html>
     <head>
         <meta charset="utf-8">
-        <title>Email Verification - Scholarship Portal</title>
+        <title>Email Verification - ScholarScanner</title>
         <style>
             body {{
                 font-family: Arial, sans-serif;
@@ -331,12 +331,12 @@ def send_otp_email(email, otp_code):
     </head>
     <body>
         <div class="header">
-            <h1>🎓 Scholarship Portal</h1>
+            <h1>🎓 ScholarScanner</h1>
             <p>Email Verification Required</p>
         </div>
         
         <div class="content">
-            <h2>Welcome to Scholarship Portal!</h2>
+            <h2>Welcome to ScholarScanner!</h2>
             <p>Thank you for registering with us. To complete your account setup, please verify your email address using the OTP code below:</p>
             
             <div class="otp-box">
@@ -353,8 +353,8 @@ def send_otp_email(email, otp_code):
         </div>
         
         <div class="footer">
-            <p>This is an automated message from Scholarship Portal.</p>
-            <p>© 2025 Scholarship Portal. All rights reserved.</p>
+            <p>This is an automated message from ScholarScanner.</p>
+            <p>© 2025 ScholarScanner. All rights reserved.</p>
         </div>
     </body>
     </html>
@@ -362,7 +362,7 @@ def send_otp_email(email, otp_code):
     
     # Create plain text version
     plain_message = f"""
-    Welcome to Scholarship Portal!
+    Welcome to ScholarScanner!
     
     Thank you for registering with us. To complete your account setup, please verify your email address.
     
@@ -373,7 +373,7 @@ def send_otp_email(email, otp_code):
     If you didn't request this verification, please ignore this email.
     
     Best regards,
-    Scholarship Portal Team
+    ScholarScanner Team
     """
     
     try:
@@ -393,19 +393,12 @@ def send_otp_email(email, otp_code):
 
 def send_verification_email(email, otp_code):
     """
-    Main function to send verification email.
-    Uses AWS SES by default, falls back to Django email backend if AWS SES fails.
+    Main function to send verification email using Django's email backend (Gmail SMTP).
     """
     try:
-        # Try AWS SES first
-        if send_otp_email_aws_ses(email, otp_code):
-            logger.info(f"Verification email sent successfully to {email} via AWS SES")
-            return True
-        else:
-            logger.warning("AWS SES failed, trying Django email backend")
-            return send_otp_email(email, otp_code)
+        return send_otp_email(email, otp_code)
     except Exception as e:
-        logger.error(f"All email sending methods failed: {e}")
+        logger.error(f"Failed to send email: {e}")
         return False
 
 
@@ -444,13 +437,13 @@ def send_welcome_email_aws_ses(email, full_name):
         
         # Send email
         response = ses_client.send_email(
-            Source=f'Scholarship Portal <{from_email}>',
+            Source=f'ScholarScanner <{from_email}>',
             Destination={
                 'ToAddresses': [email],
             },
             Message={
                 'Subject': {
-                    'Data': 'Welcome to Scholarship Portal!',
+                    'Data': 'Welcome to ScholarScanner!',
                     'Charset': 'UTF-8'
                 },
                 'Body': {
@@ -492,7 +485,7 @@ def get_welcome_html_template(full_name):
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome to Scholarship Portal</title>
+        <title>Welcome to ScholarScanner</title>
         <style>
             body {{
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -569,7 +562,7 @@ def get_welcome_html_template(full_name):
         <div class="container">
             <div class="header">
                 <div style="font-size: 36px; margin-bottom: 10px;">🎓</div>
-                <h1>Welcome to Scholarship Portal!</h1>
+                <h1>Welcome to ScholarScanner!</h1>
                 <p>Your journey to educational excellence begins here</p>
             </div>
             
@@ -615,9 +608,9 @@ def get_welcome_html_template(full_name):
             </div>
             
             <div class="footer">
-                <p><strong>Scholarship Portal</strong></p>
+                <p><strong>ScholarScanner</strong></p>
                 <p>Making education accessible for everyone</p>
-                <p>© 2025 Scholarship Portal. All rights reserved.</p>
+                <p>© 2025 ScholarScanner. All rights reserved.</p>
             </div>
         </div>
     </body>
@@ -647,10 +640,10 @@ If you have any questions or need assistance, our support team is here to help a
 
 Best of luck with your scholarship journey!
 
-Scholarship Portal Team
+ScholarScanner Team
 
 ---
-© 2025 Scholarship Portal. All rights reserved.
+© 2025 ScholarScanner. All rights reserved.
     """
 
 
@@ -667,7 +660,7 @@ def send_welcome_email_django(user_or_email, full_name=None):
         email = user_or_email
         name = full_name or 'there'
     
-    subject = 'Welcome to Scholarship Portal! 🎓'
+    subject = 'Welcome to ScholarScanner! 🎓'
     
     # Create HTML email content
     html_message = f"""
@@ -675,7 +668,7 @@ def send_welcome_email_django(user_or_email, full_name=None):
     <html>
     <head>
         <meta charset="utf-8">
-        <title>Welcome to Scholarship Portal</title>
+        <title>Welcome to ScholarScanner</title>
         <style>
             body {{
                 font-family: Arial, sans-serif;
@@ -728,7 +721,7 @@ def send_welcome_email_django(user_or_email, full_name=None):
     </head>
     <body>
         <div class="header">
-            <h1>🎓 Welcome to Scholarship Portal!</h1>
+            <h1>🎓 Welcome to ScholarScanner!</h1>
             <p>Your journey to educational excellence begins here</p>
         </div>
         
@@ -758,9 +751,9 @@ def send_welcome_email_django(user_or_email, full_name=None):
         </div>
         
         <div class="footer">
-            <p><strong>Scholarship Portal</strong></p>
+            <p><strong>ScholarScanner</strong></p>
             <p>Making education accessible for everyone</p>
-            <p>© 2025 Scholarship Portal. All rights reserved.</p>
+            <p>© 2025 ScholarScanner. All rights reserved.</p>
         </div>
     </body>
     </html>
@@ -768,7 +761,7 @@ def send_welcome_email_django(user_or_email, full_name=None):
     
     # Create plain text version
     plain_message = f"""
-    Welcome to Scholarship Portal!
+    Welcome to ScholarScanner!
     
     Hi {name}!
     
@@ -787,7 +780,7 @@ def send_welcome_email_django(user_or_email, full_name=None):
     
     Best of luck with your scholarship journey!
     
-    Scholarship Portal Team
+    ScholarScanner Team
     """
     
     try:
@@ -807,19 +800,12 @@ def send_welcome_email_django(user_or_email, full_name=None):
 
 def send_welcome_email(user):
     """
-    Main function to send welcome email.
-    Uses AWS SES by default, falls back to Django email backend if AWS SES fails.
+    Main function to send welcome email using Django's email backend (Gmail SMTP).
     """
     try:
-        # Try AWS SES first
-        if send_welcome_email_aws_ses(user.email, user.full_name):
-            logger.info(f"Welcome email sent successfully to {user.email} via AWS SES")
-            return True
-        else:
-            logger.warning("AWS SES failed for welcome email, trying Django email backend")
-            return send_welcome_email_django(user)
+        return send_welcome_email_django(user)
     except Exception as e:
-        logger.error(f"All welcome email sending methods failed: {e}")
+        logger.error(f"Failed to send welcome email: {e}")
         return False
 
 
@@ -861,7 +847,7 @@ def send_password_reset_email_aws_ses(email, otp_code):
             Source=from_email,
             Destination={'ToAddresses': [email]},
             Message={
-                'Subject': {'Data': '🔐 Password Reset - Scholarship Portal'},
+                'Subject': {'Data': '🔐 Password Reset - ScholarScanner'},
                 'Body': {
                     'Html': {'Data': html_content},
                     'Text': {'Data': plain_content}
@@ -885,7 +871,7 @@ def send_password_reset_email(email, otp_code):
     """Send password reset email using Django's email backend (fallback method)"""
     
     try:
-        subject = '🔐 Password Reset - Scholarship Portal'
+        subject = '🔐 Password Reset - ScholarScanner'
         html_message = get_password_reset_html_template(otp_code)
         plain_message = get_password_reset_plain_template(otp_code)
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@scholarshipportal.com')
@@ -916,7 +902,7 @@ def get_password_reset_html_template(otp_code):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Password Reset - Scholarship Portal</title>
+        <title>Password Reset - ScholarScanner</title>
         <style>
             body {{
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -1002,7 +988,7 @@ def get_password_reset_html_template(otp_code):
     <body>
         <div class="container">
             <div class="header">
-                <h1>🔐 Scholarship Portal</h1>
+                <h1>🔐 ScholarScanner</h1>
                 <p>Password Reset Request</p>
             </div>
             
@@ -1024,7 +1010,7 @@ def get_password_reset_html_template(otp_code):
             </div>
             
             <div class="footer">
-                <p>This email was sent from Scholarship Portal.</p>
+                <p>This email was sent from ScholarScanner.</p>
                 <p>If you have questions, please contact our support team.</p>
             </div>
         </div>
@@ -1050,7 +1036,7 @@ Enter this code on the password reset page to create a new password for your acc
 
 ⚠️ IMPORTANT: If you did not request this password reset, please secure your account immediately by changing your password.
 
-This email was sent from Scholarship Portal.
+This email was sent from ScholarScanner.
 If you have questions, please contact our support team.
     """
 

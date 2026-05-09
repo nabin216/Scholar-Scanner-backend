@@ -64,7 +64,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # Required for django-allauth
+    # 'django.contrib.sites',  # Not needed without django-allauth
     
     # Third-party apps
     'rest_framework',
@@ -75,21 +75,21 @@ INSTALLED_APPS = [
     'ckeditor_uploader',
     'django_countries',
     
-    # Authentication (temporarily disable Google provider due to cryptography issues)
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    # 'allauth.socialaccount.providers.google',
+    # Authentication
+    # Note: Using custom Google OAuth implementation instead of allauth Google provider
+    # to avoid Python 3.13 free-threading compatibility issues with cryptography module
+    # 'allauth',
+    # 'allauth.account',
+    # 'allauth.socialaccount',
     
     # Custom apps
     'scholarships',
     'users',  # Our custom users app
+    'ScholarshipSupport',  # Support system app
+    'livechat',  # Live chat system app
 ]
 # Specify the custom user model
 AUTH_USER_MODEL = 'users.User'
-
-# Site id for django-allauth
-SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -101,7 +101,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',  # Required by django-allauth
 ]
 
 # CORS settings
@@ -263,18 +262,10 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     # Django's default authentication backend
     'django.contrib.auth.backends.ModelBackend',
-    
-    # `allauth` specific authentication methods
-    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-# Allauth configuration
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_UNIQUE_EMAIL = True
+# Note: Removed django-allauth due to Python 3.13 compatibility issues
+# Using custom Google OAuth implementation instead
 
 
 # Internationalization
@@ -325,23 +316,42 @@ GOOGLE_OAUTH = {
 LOGIN_REDIRECT_URL = '/api/user/social-auth-success/'
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 
-# Email Configuration - AWS SES Only
-# Uses AWS SES SMTP as primary method, console backend for development
+# Email Configuration
+# In local DEBUG mode, default to console backend to avoid SMTP certificate issues.
+# Set USE_AWS_SES_SMTP_IN_DEBUG=true to force SMTP in development.
+import certifi
 
-# Check if AWS SES SMTP credentials are available
-if os.environ.get('AWS_SES_SMTP_USERNAME') and os.environ.get('AWS_SES_SMTP_PASSWORD'):
-    # Production: Use AWS SES SMTP
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = f'email-smtp.{os.environ.get("AWS_SES_REGION", "eu-north-1")}.amazonaws.com'
+# Point Python's SSL at certifi's trusted CA bundle (fixes Windows cert issues)
+os.environ.setdefault('SSL_CERT_FILE', certifi.where())
+os.environ.setdefault('REQUESTS_CA_BUNDLE', certifi.where())
+
+gmail_user = os.environ.get('GMAIL_USER')
+gmail_password = os.environ.get('GMAIL_APP_PASSWORD')
+
+if gmail_user and gmail_password:
+    EMAIL_BACKEND = 'users.certifi_email_backend.CertifiEmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = os.environ.get('AWS_SES_SMTP_USERNAME', '')
-    EMAIL_HOST_PASSWORD = os.environ.get('AWS_SES_SMTP_PASSWORD', '')
-    print("📧 Email Backend: AWS SES SMTP")
+    EMAIL_HOST_USER = gmail_user
+    EMAIL_HOST_PASSWORD = gmail_password
+    DEFAULT_FROM_EMAIL = f'ScholarScanner <{gmail_user}>'
+    print("Email Backend: Gmail SMTP")
 else:
-    # Development: Use console backend when AWS SES credentials are not configured
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-    print("📧 Email Backend: Console (development mode - emails will print to terminal)")
+    use_ses_smtp_in_debug = os.environ.get('USE_AWS_SES_SMTP_IN_DEBUG', 'False').lower() == 'true'
+    has_ses_smtp_creds = os.environ.get('AWS_SES_SMTP_USERNAME') and os.environ.get('AWS_SES_SMTP_PASSWORD')
+
+    if has_ses_smtp_creds and (not DEBUG or use_ses_smtp_in_debug):
+        EMAIL_BACKEND = 'users.certifi_email_backend.CertifiEmailBackend'
+        EMAIL_HOST = f'email-smtp.{os.environ.get("AWS_SES_REGION", "eu-north-1")}.amazonaws.com'
+        EMAIL_PORT = 587
+        EMAIL_USE_TLS = True
+        EMAIL_HOST_USER = os.environ.get('AWS_SES_SMTP_USERNAME', '')
+        EMAIL_HOST_PASSWORD = os.environ.get('AWS_SES_SMTP_PASSWORD', '')
+        print("Email Backend: AWS SES SMTP")
+    else:
+        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+        print("Email Backend: Console (development mode - emails will print to terminal)")
 
 # AWS SES Configuration
 AWS_SES_REGION = os.environ.get('AWS_SES_REGION', 'eu-north-1')
@@ -349,7 +359,7 @@ AWS_SES_FROM_EMAIL = os.environ.get('AWS_SES_FROM_EMAIL', 'asadurzamannabin216@g
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
 
-DEFAULT_FROM_EMAIL = f'Scholarship Portal <{os.environ.get("AWS_SES_FROM_EMAIL", "noreply@scholarshipportal.com")}>'
+DEFAULT_FROM_EMAIL = f'ScholarScanner <{os.environ.get("AWS_SES_FROM_EMAIL", "noreply@scholarscanner.com")}>'
 
 # OTP Configuration
 OTP_EXPIRE_MINUTES = 10  # OTP expires in 10 minutes
