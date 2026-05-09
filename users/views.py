@@ -19,7 +19,7 @@ from .serializers import (
     EmailVerificationSerializer, OTPVerificationSerializer, PasswordResetRequestSerializer, PasswordResetConfirmSerializer
 )
 from .permissions import IsOwnerOrReadOnly
-from .email_service import send_verification_email as send_email_with_otp, send_welcome_email, send_password_reset_otp
+from .email_service import send_verification_email as send_email_with_otp, send_welcome_email, send_password_reset_email as send_password_reset_otp
 
 User = get_user_model()
 
