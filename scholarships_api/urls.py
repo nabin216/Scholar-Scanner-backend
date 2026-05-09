@@ -20,20 +20,21 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from scholarships.views import ScholarshipViewSet
+from scholarships_api.free_ai_views import FreeAIAssistantViewSet
 
 router = DefaultRouter()
 router.register(r'scholarships', ScholarshipViewSet)
+router.register(r'ai', FreeAIAssistantViewSet, basename='free-ai-assistant')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/user/', include('users.urls')),  # Include user management URLs
+    path('api/support/', include('ScholarshipSupport.urls')),  # Support/Contact endpoints
+    path('api/livechat/', include('livechat.urls')),  # Live chat endpoints
     
-    # Django-allauth URLs
-    path('accounts/', include('allauth.urls')),
-    
-    # Google OAuth callback handler
-    path('auth/callback/google/', include('users.urls')),
+    # Note: Removed django-allauth URLs due to Python 3.13 compatibility issues
+    # Using custom Google OAuth implementation instead
 ]
 
 # Add media URL configuration for profile pictures and other uploads
