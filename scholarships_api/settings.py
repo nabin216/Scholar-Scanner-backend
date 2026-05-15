@@ -106,7 +106,9 @@ MIDDLEWARE = [
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:3001",  # Next.js development server (alternate port)
+    "http://localhost:3001",
+    "https://scholarscanner.com",
+    "https://www.scholarscanner.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # Allow credentials (cookies, authorization headers)
