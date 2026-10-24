@@ -33,10 +33,17 @@ echo -e "${GREEN}[2/9]${NC} Installing system packages..."
 # Skip large repos this server doesn't need; loading their metadata takes 10+ min on 1 GB RAM
 sudo dnf config-manager --set-disabled ol9_oci_included ol9_ksplice ol9_UEKR8 || true
 sudo dnf module enable -y postgresql:16
-sudo dnf install -y oracle-epel-release-el9
 sudo dnf install -y $PYTHON $PYTHON-devel gcc git nginx \
     postgresql-server postgresql-contrib \
-    policycoreutils-python-utils certbot python3-certbot-nginx
+    policycoreutils-python-utils
+
+# certbot isn't in the default Oracle Linux repos; install it with pip (certbot's documented method)
+if [ ! -x /opt/certbot/bin/certbot ]; then
+    sudo $PYTHON -m venv /opt/certbot
+    sudo /opt/certbot/bin/pip install -q --upgrade pip
+    sudo /opt/certbot/bin/pip install -q certbot certbot-nginx
+    sudo ln -sf /opt/certbot/bin/certbot /usr/bin/certbot
+fi
 
 echo -e "${GREEN}[3/9]${NC} Opening HTTP/HTTPS in firewalld and SELinux..."
 sudo firewall-cmd --permanent --add-service=http --add-service=https
