@@ -139,7 +139,7 @@ After=network.target postgresql.service
 User=$APP_USER
 Group=nginx
 WorkingDirectory=$APP_DIR
-EnvironmentFile=$APP_DIR/.env
+# No EnvironmentFile: SELinux blocks systemd from reading ~/.env; settings.py loads it via python-dotenv
 ExecStart=$APP_DIR/.venv/bin/gunicorn \\
     --workers 2 \\
     --bind 127.0.0.1:8000 \\
