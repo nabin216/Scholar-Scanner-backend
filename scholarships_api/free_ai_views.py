@@ -112,8 +112,11 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
             'Content-Type': 'application/json'
         }
 
+        # llama-3.3-70b-versatile was retired by Groq; override with GRQE_MODEL when models change
+        model = os.environ.get('GRQE_MODEL', 'openai/gpt-oss-120b')
+
         payload = {
-            "model": "llama-3.3-70b-versatile",  # Updated Groq model (Dec 2024)
+            "model": model,
             "messages": [
                 {
                     "role": "system",
@@ -125,8 +128,11 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
                 }
             ],
             "temperature": 0.7,
-            "max_tokens": 300
+            "max_tokens": 600
         }
+        if model.startswith('openai/gpt-oss'):
+            # Reasoning models spend tokens thinking before answering; keep that short
+            payload["reasoning_effort"] = "low"
 
         try:
             response = requests.post(
