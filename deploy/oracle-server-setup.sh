@@ -19,7 +19,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo -e "${GREEN}[1/9]${NC} Adding 2 GB swap (the Micro VM only has 1 GB RAM)..."
-if [ ! -f /swapfile2g ]; then
+if ! swapon --show | grep -q /swapfile2g; then
+    sudo rm -f /swapfile2g   # remove a half-written file from an interrupted run
+    sudo sed -i '\|/swapfile2g|d' /etc/fstab
     sudo dd if=/dev/zero of=/swapfile2g bs=1M count=2048 status=none
     sudo chmod 600 /swapfile2g
     sudo mkswap /swapfile2g
