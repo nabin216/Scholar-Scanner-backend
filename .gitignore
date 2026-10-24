@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 !.env.ec2
+azure/config.env
 
 db.sqlite3
 __pycache__/

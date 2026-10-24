@@ -103,16 +103,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "https://scholarscanner.com",
-    "https://www.scholarscanner.com",
-]
-
-CORS_ALLOW_CREDENTIALS = True  # Allow credentials (cookies, authorization headers)
-
+# CORS settings (CORS_ALLOWED_ORIGINS / CORS_ALLOW_CREDENTIALS already set above from env vars)
 CORS_ALLOW_METHODS = [
     'GET',
     'POST',
@@ -211,19 +202,37 @@ WSGI_APPLICATION = 'scholarships_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Make dj-database-url optional for local development
-try:
-    import dj_database_url as _djdb
-except ImportError:
-    _djdb = None
-
-# Use DATABASE_URL if available (production), otherwise use SQLite (development)
+# Use PostgreSQL if DATABASE_URL is set (Oracle Cloud production),
+# else Azure SQL Database if configured, otherwise SQLite (development)
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-if DATABASE_URL and _djdb:
-    # Production database (PostgreSQL via DATABASE_URL)
+AZURE_SQL_SERVER = os.getenv('AZURE_SQL_SERVER')      # e.g. myserver.database.windows.net
+AZURE_SQL_DATABASE = os.getenv('AZURE_SQL_DATABASE')
+AZURE_SQL_USER = os.getenv('AZURE_SQL_USER')          # e.g. sqladmin@myserver
+AZURE_SQL_PASSWORD = os.getenv('AZURE_SQL_PASSWORD')
+
+if DATABASE_URL:
+    import dj_database_url
+    # e.g. postgres://user:password@localhost:5432/scholarships
     DATABASES = {
-        'default': _djdb.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, conn_health_checks=True)
+    }
+elif AZURE_SQL_SERVER and AZURE_SQL_DATABASE and AZURE_SQL_USER and AZURE_SQL_PASSWORD:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'mssql',
+            'NAME': AZURE_SQL_DATABASE,
+            'USER': AZURE_SQL_USER,
+            'PASSWORD': AZURE_SQL_PASSWORD,
+            'HOST': AZURE_SQL_SERVER,
+            'PORT': '',
+            'OPTIONS': {
+                # Pure-Python driver: no system ODBC driver / apt packages needed on the host.
+                # No extra_params: mssql_python's default (encrypted, CA-verified) is correct
+                # for Azure SQL's valid certificate, and avoids a second untested syntax.
+                'python_driver': 'mssql_python',
+            },
+        }
     }
 else:
     # Development database (SQLite)
@@ -293,7 +302,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Override to a path outside the deploy folder in production (e.g. /home/media on
+# Azure App Service) so uploads survive the next zip-deploy, which replaces wwwroot.
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', str(BASE_DIR / 'media'))
 
 # Google OAuth Settings
 # Google OAuth credentials from environment variables
