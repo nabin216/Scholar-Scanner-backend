@@ -30,6 +30,8 @@ if ! swapon --show | grep -q /swapfile2g; then
 fi
 
 echo -e "${GREEN}[2/9]${NC} Installing system packages..."
+# Skip large repos this server doesn't need; loading their metadata takes 10+ min on 1 GB RAM
+sudo dnf config-manager --set-disabled ol9_oci_included ol9_ksplice ol9_UEKR8 || true
 sudo dnf module enable -y postgresql:16
 sudo dnf install -y oracle-epel-release-el9
 sudo dnf install -y $PYTHON $PYTHON-devel gcc git nginx \
