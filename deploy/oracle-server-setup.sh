@@ -51,7 +51,7 @@ sudo firewall-cmd --reload
 sudo setsebool -P httpd_can_network_connect 1   # let nginx proxy to gunicorn
 
 echo -e "${GREEN}[4/9]${NC} Setting up PostgreSQL..."
-if [ ! -f /var/lib/pgsql/data/PG_VERSION ]; then
+if ! sudo test -f /var/lib/pgsql/data/PG_VERSION; then   # data dir is only readable by postgres
     sudo postgresql-setup --initdb
     # Password logins over localhost instead of ident
     sudo sed -i -E 's/^(host\s+all\s+all\s+\S+\s+)ident/\1scram-sha-256/' /var/lib/pgsql/data/pg_hba.conf
