@@ -22,11 +22,13 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add field without unique constraint first
+        # Add field without unique constraint (or index) first. db_index=False because on
+        # PostgreSQL the AlterField below creates the "_like" index, and creating it here
+        # too fails with "relation ..._like already exists".
         migrations.AddField(
             model_name='scholarship',
             name='slug',
-            field=models.SlugField(blank=True, max_length=250),
+            field=models.SlugField(blank=True, max_length=250, db_index=False),
         ),
         # Populate slugs for all existing records
         migrations.RunPython(generate_slugs, migrations.RunPython.noop),
