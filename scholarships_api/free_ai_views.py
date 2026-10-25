@@ -92,20 +92,21 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
         if not api_url or not api_key:
             return None
 
-        # Get scholarship context from database
-        scholarships = Scholarship.objects.all()[:10]
+        # Give the model every scholarship (one short line each) and the real total,
+        # so it can answer counts and recommend from the whole database
+        scholarships = Scholarship.objects.select_related('country').prefetch_related('levels').order_by('deadline')
+        total = scholarships.count()
         scholarship_context = ""
-        
-        if scholarships:
-            scholarship_context = "\n\nAvailable scholarships in our database:\n"
+
+        if total:
+            scholarship_context = (
+                f"\n\nOur database has exactly {total} scholarships. Here is the full list "
+                "(title | host country | levels | approx. yearly USD | next deadline):\n"
+            )
             for sch in scholarships:
-                scholarship_context += f"- {sch.title}"
-                if hasattr(sch, 'amount') and sch.amount:
-                    scholarship_context += f" (${sch.amount})"
-                if hasattr(sch, 'description') and sch.description:
-                    desc = sch.description[:100] + "..." if len(sch.description) > 100 else sch.description
-                    scholarship_context += f": {desc}"
-                scholarship_context += "\n"
+                levels = ', '.join(level.name for level in sch.levels.all())
+                amount = f"${sch.amount:,.0f}" if sch.amount else 'varies'
+                scholarship_context += f"- {sch.title} | {sch.country.name} | {levels} | {amount} | {sch.deadline}\n"
 
         headers = {
             'Authorization': f'Bearer {api_key}',
@@ -160,14 +161,15 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
     
     def search_by_field(self, field):
         """Search scholarships by field and return summary"""
-        scholarships = Scholarship.objects.filter(
+        matches = Scholarship.objects.filter(
             Q(title__icontains=field) | Q(description__icontains=field)
-        )[:5]
-        
+        )
+        scholarships = matches[:5]
+
         if not scholarships:
             return None
-        
-        response = f"Found {scholarships.count()} {field} scholarships! 📚\n\n"
+
+        response = f"Found {matches.count()} {field} scholarships! 📚\n\n"
         for scholarship in scholarships:
             response += f"💡 **{scholarship.title}** - ${scholarship.amount if hasattr(scholarship, 'amount') else 'Variable'}\n"
         
@@ -182,16 +184,18 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
         for keyword in keywords:
             query_filter |= Q(title__icontains=keyword) | Q(description__icontains=keyword)
         
-        scholarships = Scholarship.objects.filter(query_filter)[:3]
-        
+        matches = Scholarship.objects.filter(query_filter)
+        scholarships = matches[:3]
+
         if scholarships:
-            response = f"I found {scholarships.count()} relevant scholarships! 🎓\n\n"
+            response = f"I found {matches.count()} relevant scholarships! 🎓\n\n"
             for scholarship in scholarships:
                 response += f"✨ **{scholarship.title}**\n"
             response += "\nUse our search page to see full details! 🔍"
             return response
         else:
-            return "I couldn't find exact matches, but we have 1000+ scholarships available! Try using the search page to filter by subject, amount, or eligibility. 🚀"
+            return (f"I couldn't find exact matches, but we have {Scholarship.objects.count()} scholarships available! "
+                    "Try using the search page to filter by subject, amount, or eligibility. 🚀")
     
     def get_application_tips(self):
         """Return application writing tips"""
