@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from django_filters.rest_framework import DjangoFilterBackend
@@ -20,14 +21,20 @@ class ScholarshipDetailThrottle(AnonRateThrottle):
     """Stricter rate limiting for detail views to prevent enumeration attacks"""
     rate = '30/hour'  # 30 requests per hour for anonymous users
 
+class ScholarshipPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class ScholarshipViewSet(viewsets.ModelViewSet):
     queryset = Scholarship.objects.all()
     serializer_class = ScholarshipSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = ScholarshipPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ScholarshipFilter
     search_fields = ['title', 'description']
-    ordering_fields = ['created_at', 'deadline']
+    ordering_fields = ['created_at', 'deadline', 'title', 'open_date', 'country__name']
     lookup_field = 'slug'
 
     def get_throttles(self):
