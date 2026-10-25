@@ -18,8 +18,11 @@ from .serializers import (
 from .filters import ScholarshipFilter
 
 class ScholarshipDetailThrottle(AnonRateThrottle):
-    """Stricter rate limiting for detail views to prevent enumeration attacks"""
-    rate = '30/hour'  # 30 requests per hour for anonymous users
+    """Separate limit for anonymous detail views to slow down scraping"""
+    # Own scope: inheriting 'anon' shared the counter with every other anonymous request,
+    # so normal browsing of the search page used up the detail allowance
+    scope = 'scholarship_detail'
+    rate = '300/hour'
 
 class ScholarshipPagination(PageNumberPagination):
     page_size = 20
