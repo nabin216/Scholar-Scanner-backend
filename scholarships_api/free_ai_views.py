@@ -17,7 +17,7 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
         Free AI that searches scholarship database and generates answers
         """
         try:
-            user_message = request.data.get('message', '').strip().lower()
+            user_message = request.data.get('message', '').strip()[:1000]
             
             if not user_message:
                 return Response(
@@ -30,6 +30,8 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
             
             return Response({
                 'message': response_text,
+                # Scholarships named in the answer, so the chat can show them as cards
+                'scholarships': self.mentioned_scholarships(response_text, request),
                 'success': True
             }, status=status.HTTP_200_OK)
             
@@ -42,10 +44,13 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
-    def generate_response(self, query):
-        """Generate response based on database search or external GRQE search"""
+    def generate_response(self, message):
+        """Answer with the AI model when it is configured; otherwise use local search and canned tips"""
+        external_response = self.search_grqe(message)
+        if external_response:
+            return external_response
 
-        # Tip-style queries get handled first so they don't go to external search
+        query = message.lower()
         if any(word in query for word in ['essay', 'write', 'application', 'apply']):
             return self.get_application_tips()
 
@@ -61,12 +66,7 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
         if any(word in query for word in ['international', 'visa', 'country', 'abroad']):
             return self.get_international_info()
 
-        # If GRQE env vars are present, try external search first
-        external_response = self.search_grqe(query)
-        if external_response:
-            return external_response
-
-        # Fallback to local DB search / canned responses
+        # Local DB search / canned responses
         if any(word in query for word in ['engineering', 'computer', 'tech', 'technology']):
             return self.search_by_field('Engineering') or "Check our engineering scholarships by using the search feature! 🔧"
 
@@ -83,6 +83,32 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
             return self.search_by_field('Arts') or "Discover creative scholarships in our database! 🎨"
 
         return self.general_search(query)
+
+    def mentioned_scholarships(self, text, request, limit=6):
+        """Scholarships whose title appears in the answer, in the order they are mentioned"""
+        def normalize(value):
+            return ' '.join(re.sub(r'[^a-z0-9]+', ' ', value.lower()).split())
+
+        haystack = f' {normalize(text)} '
+        found = []
+        for sch in Scholarship.objects.select_related('country').prefetch_related('fund_type'):
+            position = haystack.find(f' {normalize(sch.title)} ')
+            if position != -1:
+                found.append((position, sch))
+        found.sort(key=lambda item: item[0])
+
+        return [
+            {
+                'id': sch.id,
+                'slug': sch.slug,
+                'title': sch.title,
+                'country': sch.country.name,
+                'deadline': sch.deadline,
+                'image': request.build_absolute_uri(sch.image.url) if sch.image else None,
+                'fully_funded': any(f.name == 'Full Funding' for f in sch.fund_type.all()),
+            }
+            for _, sch in found[:limit]
+        ]
 
     def search_grqe(self, query):
         """Call Groq API when configured; return AI-generated response or None on failure."""
@@ -133,15 +159,22 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
             "messages": [
                 {
                     "role": "system",
-                    "content": f"You are a helpful scholarship assistant. Help students find scholarships and answer their questions about applications, eligibility, and funding. Keep responses concise (2-3 paragraphs max) and friendly. Use emojis sparingly.{scholarship_context}"
+                    "content": (
+                        "You are ScholarScanner's scholarship assistant. Help students find scholarships and answer "
+                        "questions about applications, eligibility, documents and funding. Be friendly and concise "
+                        "(under about 150 words unless the student asks for more). Format answers in Markdown: one short "
+                        "intro sentence, then a bullet list. Write each scholarship name in bold, copied exactly as it "
+                        "appears in the list, with its country and deadline. Do not use tables. Use emojis sparingly."
+                        f"{scholarship_context}"
+                    )
                 },
                 {
                     "role": "user",
                     "content": query
                 }
             ],
-            "temperature": 0.7,
-            "max_tokens": 600
+            "temperature": 0.3,
+            "max_tokens": 900
         }
         if model.startswith('openai/gpt-oss'):
             # Reasoning models spend tokens thinking before answering; keep that short
@@ -166,7 +199,7 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
             data = response.json()
             if 'choices' in data and len(data['choices']) > 0:
                 ai_response = data['choices'][0]['message']['content'].strip()
-                return f"🤖 {ai_response}"
+                return ai_response
             return None
         except (ValueError, KeyError, IndexError):
             return None
