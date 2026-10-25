@@ -94,19 +94,31 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
 
         # Give the model every scholarship (one short line each) and the real total,
         # so it can answer counts and recommend from the whole database
-        scholarships = Scholarship.objects.select_related('country').prefetch_related('levels').order_by('deadline')
+        scholarships = (
+            Scholarship.objects.select_related('country')
+            .prefetch_related('levels', 'fund_type')
+            .order_by('deadline')
+        )
         total = scholarships.count()
         scholarship_context = ""
 
         if total:
             scholarship_context = (
                 f"\n\nOur database has exactly {total} scholarships. Here is the full list "
-                "(title | host country | levels | approx. yearly USD | next deadline):\n"
+                "(title | host country | levels | funding | approx. yearly USD | next deadline):\n"
             )
             for sch in scholarships:
                 levels = ', '.join(level.name for level in sch.levels.all())
+                funding = ', '.join(fund.name for fund in sch.fund_type.all())
                 amount = f"${sch.amount:,.0f}" if sch.amount else 'varies'
-                scholarship_context += f"- {sch.title} | {sch.country.name} | {levels} | {amount} | {sch.deadline}\n"
+                scholarship_context += (
+                    f"- {sch.title} | {sch.country.name} | {levels} | {funding} | {amount} | {sch.deadline}\n"
+                )
+            scholarship_context += (
+                "\nWhen recommending scholarships, only use this list and match the listed host country, "
+                "levels and funding exactly. Never add details that are not in the list; tell the student "
+                "to check the scholarship page for anything else."
+            )
 
         headers = {
             'Authorization': f'Bearer {api_key}',
