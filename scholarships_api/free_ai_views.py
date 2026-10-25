@@ -164,7 +164,10 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
                         "questions about applications, eligibility, documents and funding. Be friendly and concise "
                         "(under about 150 words unless the student asks for more). Format answers in Markdown: one short "
                         "intro sentence, then a bullet list. Write each scholarship name in bold, copied exactly as it "
-                        "appears in the list, with its country and deadline. Do not use tables. Use emojis sparingly."
+                        "appears in the list, with its country and deadline. When recommending, list at most 6 of the "
+                        "best matches (soonest open deadlines first) and only include scholarships that meet every "
+                        "criterion the student gave (country or region, level, field, funding); never mention ones you "
+                        "left out. If there are more matches, offer to show more. Do not use tables. Use emojis sparingly."
                         f"{scholarship_context}"
                     )
                 },
