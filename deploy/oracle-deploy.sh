@@ -20,6 +20,9 @@ echo "==> Installing dependencies"
 echo "==> Running migrations"
 .venv/bin/python manage.py migrate --noinput
 
+echo "==> Loading scholarships (adds missing ones and their images, never overwrites edits)"
+.venv/bin/python manage.py load_real_scholarships
+
 echo "==> Collecting static files"
 .venv/bin/python manage.py collectstatic --noinput
 

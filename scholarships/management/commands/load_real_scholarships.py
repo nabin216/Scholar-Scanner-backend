@@ -1,11 +1,19 @@
 from datetime import date
+from pathlib import Path
 
+from django.core.files import File
 from django.core.management.base import BaseCommand
+from django.utils.text import slugify
 
 from scholarships.models import (
     Scholarship, Country, Level, ScholarshipCategory,
     FieldOfStudy, FundType, SponsorType, LanguageRequirement
 )
+
+from ._more_scholarships import MORE_SCHOLARSHIPS
+
+# One 1200x675 photo per scholarship, named after slugify(title). Sources and licences: seed_images/CREDITS.md
+SEED_IMAGES = Path(__file__).resolve().parents[2] / 'seed_images'
 
 NOTE = (
     '<p><em>Deadlines and amounts change every cycle and can differ by country. '
@@ -380,38 +388,51 @@ SCHOLARSHIPS = [
 
 
 class Command(BaseCommand):
-    help = 'Load (or update) a set of real, well-known international scholarships'
+    help = (
+        'Load the real, well-known international scholarships. Creates missing ones and attaches '
+        'missing images; existing data is only overwritten with --update.'
+    )
+
+    def add_arguments(self, parser):
+        parser.add_argument('--update', action='store_true', help='Overwrite existing scholarships with this data')
 
     def handle(self, *args, **options):
-        created = updated = 0
-        for data in SCHOLARSHIPS:
-            country = Country.objects.get(name=data['country'])
-            scholarship, is_new = Scholarship.objects.update_or_create(
-                title=data['title'],
-                defaults={
-                    'provider': data['provider'],
-                    'country': country,
-                    'amount': data['amount'],
-                    'open_date': data['open_date'],
-                    'deadline': data['deadline'],
-                    'application_url': data['application_url'],
-                    'is_featured': data['featured'],
-                    'description': data['description'] + NOTE,
-                },
-            )
-            scholarship.levels.set([Level.objects.get_or_create(name=n)[0] for n in data['levels']])
-            scholarship.field_of_study.set([FieldOfStudy.objects.get_or_create(name=n)[0] for n in data['fields']])
-            scholarship.fund_type.set([FundType.objects.get_or_create(name=n)[0] for n in data['fund_types']])
-            scholarship.sponsor_type.set([SponsorType.objects.get_or_create(name=n)[0] for n in data['sponsors']])
-            scholarship.scholarship_category.set(
-                [ScholarshipCategory.objects.get_or_create(name=n)[0] for n in data['categories']]
-            )
-            scholarship.language_requirement.set(
-                [LanguageRequirement.objects.get_or_create(name=n)[0] for n in data['languages']]
-            )
-            created += is_new
-            updated += not is_new
+        created = updated = images = 0
+        all_scholarships = SCHOLARSHIPS + MORE_SCHOLARSHIPS
+        for data in all_scholarships:
+            scholarship = Scholarship.objects.filter(title=data['title']).first()
+            is_new = scholarship is None
+            if is_new or options['update']:
+                scholarship = scholarship or Scholarship(title=data['title'])
+                scholarship.provider = data['provider']
+                scholarship.country = Country.objects.get_or_create(name=data['country'])[0]
+                scholarship.amount = data['amount']
+                scholarship.open_date = data['open_date']
+                scholarship.deadline = data['deadline']
+                scholarship.application_url = data['application_url']
+                scholarship.is_featured = data['featured']
+                scholarship.description = data['description'] + NOTE
+                scholarship.save()
+                scholarship.levels.set([Level.objects.get_or_create(name=n)[0] for n in data['levels']])
+                scholarship.field_of_study.set([FieldOfStudy.objects.get_or_create(name=n)[0] for n in data['fields']])
+                scholarship.fund_type.set([FundType.objects.get_or_create(name=n)[0] for n in data['fund_types']])
+                scholarship.sponsor_type.set([SponsorType.objects.get_or_create(name=n)[0] for n in data['sponsors']])
+                scholarship.scholarship_category.set(
+                    [ScholarshipCategory.objects.get_or_create(name=n)[0] for n in data['categories']]
+                )
+                scholarship.language_requirement.set(
+                    [LanguageRequirement.objects.get_or_create(name=n)[0] for n in data['languages']]
+                )
+                created += is_new
+                updated += not is_new
+
+            image_path = SEED_IMAGES / f"{slugify(data['title'])}.jpg"
+            if not scholarship.image and image_path.exists():
+                with image_path.open('rb') as f:
+                    scholarship.image.save(image_path.name, File(f), save=True)
+                images += 1
 
         self.stdout.write(self.style.SUCCESS(
-            f'Done: {created} created, {updated} updated ({len(SCHOLARSHIPS)} scholarships)'
+            f'Done: {created} created, {updated} updated, {images} images attached '
+            f'({len(all_scholarships)} scholarships)'
         ))
