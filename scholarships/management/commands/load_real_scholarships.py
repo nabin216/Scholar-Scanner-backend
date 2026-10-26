@@ -11,6 +11,7 @@ from scholarships.models import (
     FieldOfStudy, FundType, SponsorType, LanguageRequirement
 )
 
+from ._corrections import CORRECTIONS
 from ._more_scholarships import MORE_SCHOLARSHIPS
 
 # One 1200x675 photo per scholarship, named after slugify(title). Sources and licences: seed_images/CREDITS.md
@@ -19,6 +20,20 @@ SEED_IMAGES = Path(__file__).resolve().parents[2] / 'seed_images'
 # Later batches live in seed_data/batch_*.json (same fields, dates as YYYY-MM-DD), checked against
 # each scholarship's official page before being added
 SEED_DATA = Path(__file__).resolve().parents[2] / 'seed_data'
+
+
+# Earlier entries that could not be confirmed on an official page, or were renamed, and are deleted on load
+RETIRED_TITLES = [
+    'Holland Scholarship',                              # renamed NL Scholarship
+    "ANU Chancellor's International Scholarship",       # replaced by ANU International Achievement Award
+    "Imperial College President's PhD Scholarships",
+    'UNSW Scientia PhD Scholarship',
+    'Monash International Leadership Scholarship',
+    'KTH Scholarship',
+    "University of Geneva Excellence Master's Fellowships",
+    'University of Bologna Study Grants for International Students',
+    'Bocconi International Awards',                     # renamed Bocconi Graduate Merit Awards
+]
 
 
 def load_seed_batches():
@@ -414,7 +429,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         created = updated = images = 0
         all_scholarships = SCHOLARSHIPS + MORE_SCHOLARSHIPS + load_seed_batches()
+
+        retired = Scholarship.objects.filter(title__in=RETIRED_TITLES)
+        removed = retired.count()
+        if removed:
+            retired.delete()
+            self.stdout.write(f'Removed {removed} retired scholarships')
+
         for data in all_scholarships:
+            if data['title'] in CORRECTIONS:
+                data = {**data, **CORRECTIONS[data['title']]}
+            if data['title'] in RETIRED_TITLES:
+                continue
             scholarship = Scholarship.objects.filter(title=data['title']).first()
             is_new = scholarship is None
             if is_new or options['update']:
