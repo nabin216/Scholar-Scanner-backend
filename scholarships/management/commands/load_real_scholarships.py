@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from pathlib import Path
 
@@ -14,6 +15,20 @@ from ._more_scholarships import MORE_SCHOLARSHIPS
 
 # One 1200x675 photo per scholarship, named after slugify(title). Sources and licences: seed_images/CREDITS.md
 SEED_IMAGES = Path(__file__).resolve().parents[2] / 'seed_images'
+
+# Later batches live in seed_data/batch_*.json (same fields, dates as YYYY-MM-DD), checked against
+# each scholarship's official page before being added
+SEED_DATA = Path(__file__).resolve().parents[2] / 'seed_data'
+
+
+def load_seed_batches():
+    batches = []
+    for path in sorted(SEED_DATA.glob('batch_*.json')):
+        for item in json.loads(path.read_text(encoding='utf-8')):
+            item['open_date'] = date.fromisoformat(item['open_date']) if item.get('open_date') else None
+            item['deadline'] = date.fromisoformat(item['deadline'])
+            batches.append(item)
+    return batches
 
 NOTE = (
     '<p><em>Deadlines and amounts change every cycle and can differ by country. '
@@ -398,7 +413,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         created = updated = images = 0
-        all_scholarships = SCHOLARSHIPS + MORE_SCHOLARSHIPS
+        all_scholarships = SCHOLARSHIPS + MORE_SCHOLARSHIPS + load_seed_batches()
         for data in all_scholarships:
             scholarship = Scholarship.objects.filter(title=data['title']).first()
             is_new = scholarship is None
