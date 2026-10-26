@@ -202,3 +202,76 @@ Used by `manage.py load_real_scholarships`.
 | york-global-impact-masters-scholarship.jpg | Heslington Hall | simoneseverini | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Heslington_Hall_-_panoramio.jpg) |
 | york-international-masters-achievement-scholarship.jpg | Heslington Hall | simoneseverini | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Heslington_Hall_-_panoramio.jpg) |
 | york-university-global-leader-of-tomorrow-award.jpg | Toronto | Dillan Payne | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Toronto_Skyline_from_Snake_Island%2C_September_11_2026_%2801%29.jpg) |
+| aarhus-university-tuition-fee-waivers.jpg | Aarhus | SmartDrones Aarhus | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Drone_photo_of_Dokk1_in_Aarhus%2C_Denmark.jpg) |
+| aims-masters-in-mathematical-sciences.jpg | Kigali | Emmanuelkwizera | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:High_Angle_View_Of_Kigali_City_Street_on_November_29%2C_2018._Emmanuel_Kwizera.jpg) |
+| amherst-college-financial-aid-for-international-students.jpg | Amherst, Massachusetts | Quintin Soloviev | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Amherst%2C_MA_%28cropped%29_2.jpg) |
+| anso-cas-twasunesco-phd-scholarship.jpg | Hefei | 钉钉 | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:%E5%A4%A9%E9%B9%85%E6%B9%96.jpg) |
+| apu-tuition-reduction-scholarship.jpg | Hells of Beppu | Totti | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:180131_Umi-Jigoku.jpg) |
+| bath-global-excellence-scholarship.jpg | Royal Crescent | Unknown | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:Royal.crescent.aerial.bath.arp.jpg) |
+| bath-great-scholarships-kenya-and-others.jpg | Royal Crescent | Unknown | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:Royal.crescent.aerial.bath.arp.jpg) |
+| berea-college-full-funding-for-international-students.jpg | Berea College | IMCBerea College | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:20140310_CampusShots_CAC_%284%29_%2813090607645%29.jpg) |
+| bilkent-university-graduate-scholarships.jpg | Ankara | Boubacar Amadou Cisse | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Ankara_from_bus_station.jpg) |
+| bowdoin-college-financial-aid-for-international-students.jpg | Brunswick, Maine | Quintin Soloviev | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Brunswick%2C_Maine.jpg) |
+| brown-university-financial-aid-for-international-students.jpg | University Hall (Brown University) | Kenneth C. Zirkel | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Brown%27s_University_Hall_in_2007.jpg) |
+| canon-collins-rmtf-scholarships-for-postgraduate-study.jpg | Johannesburg | Mark Hillary | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Johannesburg_skyline_2017.jpg) |
+| carleton-university-international-entrance-scholarships.jpg | Carleton University | Harleyd613 | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:CarletonUniversity2022.jpg) |
+| cas-anso-scholarship-degree-programme.jpg | Beijing National Stadium | CEphoto, Uwe Aranas | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Beijing_China_Beijing-National-Stadium-01.jpg) |
+| cityuhk-entrance-scholarship-for-international-students.jpg | Kowloon Tong | Wing1990hk | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Kowloon_Tong_201504.jpg) |
+| columbia-university-financial-aid-for-international-students.jpg | Low Memorial Library | Ajay Suresh from New York, NY, USA | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Columbia_University_-_Low_Memorial_Library_%2848170370506%29.jpg) |
+| daad-bi-nationally-supervised-doctoral-degrees-cotutelle.jpg | Heidelberg Castle | Motatcho | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Heidelberg-2726936.jpg) |
+| daad-in-countryin-region-scholarships-for-sub-saharan-africa.jpg | Dar es Salaam | David Stanley from Nanaimo, Canada | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:St_Joseph%27s_Catholic_Cathedral_%2834895613805%29.jpg) |
+| daad-study-scholarships-postgraduate-studies-in-architecture.jpg | Bauhaus Dessau | A.Savin | FAL | [Commons](https://commons.wikimedia.org/wiki/File:Dessau_Bauhaus-Geb%C3%A4ude_asv2024-06_img1.jpg) |
+| daad-study-scholarships-postgraduate-studies-in-music.jpg | Berliner Philharmonie | A.Savin | FAL | [Commons](https://commons.wikimedia.org/wiki/File:Berlin_Philharmonie_asv2018-05_img2.jpg) |
+| dtu-tuition-fee-waivers-for-non-eu-msc-students.jpg | Lyngby | This file was made by Thomas Hindsgaul, and should be credited as such. If you m | CC BY 2.5 dk | [Commons](https://commons.wikimedia.org/wiki/File:Lyngby_Kirke_%28Kongens_Lyngby%29_21-03-06.jpg) |
+| edinburgh-doctoral-college-scholarships.jpg | Old College, University of Edinburgh | LWYang from USA | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Old_College%2C_University_of_Edinburgh_%2824923171570%29.jpg) |
+| edinburgh-india-merit-scholarship.jpg | Old College, University of Edinburgh | LWYang from USA | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Old_College%2C_University_of_Edinburgh_%2824923171570%29.jpg) |
+| essex-global-talent-masters-scholarship.jpg | Colchester Castle | George Gastin | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Colchester-castle.jpg) |
+| ewha-global-partnership-program-egpp.jpg | Sinchon | by thelearnr | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Seoul-Sinchon-01.jpg) |
+| friedrich-ebert-stiftung-scholarships-for-international-students.jpg | Bonn | Matthias Zepper | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:General_view_over_bonn_%28cropped%29.jpg) |
+| friedrich-naumann-foundation-scholarships-for-non-eu-students.jpg | Potsdam | Kai Vogel | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Havel-Park-Lake-Babelsberg-Downtown-Potsdam-Green.jpg) |
+| gist-international-graduate-scholarship.jpg | Mudeungsan | gary4now | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Mt_Mudeungsan_-_panoramio.jpg) |
+| hanns-seidel-foundation-scholarships-for-foreign-students.jpg | Marienplatz | Diliff | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Rathaus_and_Marienplatz_from_Peterskirche_-_August_2006.jpg) |
+| hkust-redbird-phd-award-and-postgraduate-studentship.jpg | Clear Water Bay | Earth100 | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Clear_Water_Bay_1st_Beach.jpg) |
+| honjo-international-scholarship-foreign-students.jpg | Meiji Shrine | Akonnchiroll | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Meiji_Jingu_2023-3.jpg) |
+| international-chinese-language-teachers-scholarship.jpg | Temple of Heaven | Shujianyang | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Temple_of_Heaven_20160323_01.jpg) |
+| islamic-university-of-madinah-scholarships.jpg | Al-Masjid an-Nabawi | Muhammad Mahdi Karim | GFDL 1.2 | [Commons](https://commons.wikimedia.org/wiki/File:Masjid_Nabawi_The_Prophet%27s_Mosque%2C_Madina.jpg) |
+| jasso-monbukagakusho-honors-scholarship.jpg | Senso-ji | Akonnchiroll | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Sensoji_2023.jpg) |
+| jds-human-resource-development-scholarship.jpg | Tokyo Station | MaedaAkihiko | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Tokyo-STA_Marunouchi-Entrance_2023.jpg) |
+| jica-abe-initiative.jpg | Osaka Castle | 663highland | CC BY 2.5 | [Commons](https://commons.wikimedia.org/wiki/File:Osaka_Castle_03bs3200.jpg) |
+| jonkoping-university-scholarship.jpg | Vättern | Kenny Louie from Vancouver, Canada | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:A_distant_memory_%282835767026%29.jpg) |
+| kent-international-scholarship-masters.jpg | Canterbury Cathedral | Tony Hisgett from Birmingham, UK | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Canterbury_Cathedral_evening_%284902497028%29.jpg) |
+| king-saud-university-phd-initiative.jpg | Riyadh | B.alotaby | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Riyadh_Skyline.jpg) |
+| koc-university-graduate-fellowships.jpg | Rumelihisarı | flowcomm | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Istanbul%2C_Turkey_-_53686764072.jpg) |
+| koica-scholarship-program.jpg | Changdeokgung | 문화재청 | KOGL Type 1 | [Commons](https://commons.wikimedia.org/wiki/File:%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%A0%84%EA%B2%BD_%282012%29.jpg) |
+| lut-university-early-bird-discount-and-second-year-scholarship.jpg | Lappeenranta | Toni | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Lappeenranta_Landscape.jpg) |
+| mahidol-living-allowance-scholarship-for-foreign-graduate-students.jpg | Bangkok | Ninara from Helsinki, Finland | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:4Y1A1159_Bangkok_%2833536795515%29.jpg) |
+| mahidol-postgraduate-scholarships-for-international-students.jpg | Bangkok | Ninara from Helsinki, Finland | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:4Y1A1159_Bangkok_%2833536795515%29.jpg) |
+| margaret-mcnamara-education-grants.jpg | National Mall | Matti Blume | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:National_Mall%2C_Washington%2C_D.C._%2820100325-DSC01310%29.jpg) |
+| mastercard-foundation-scholars-at-knust.jpg | Kumasi | Maven Egote | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Kronum_Kumasi_2018-11-08_%28130246%29.jpg) |
+| mastercard-foundation-scholars-at-makerere-university.jpg | Kampala | Chapelle musa | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Urban_Rising%2C_KAMPALA%2C_Uganda.jpg) |
+| mastercard-foundation-scholars-at-the-university-of-cape-town.jpg | Table Mountain | Danie van der Merwe from Cape Town, South Africa | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Table_Mountain_DanieVDM.jpg) |
+| mastercard-foundation-scholars-at-the-university-of-edinburgh.jpg | Old College, University of Edinburgh | LWYang from USA | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Old_College%2C_University_of_Edinburgh_%2824923171570%29.jpg) |
+| mastercard-foundation-scholars-at-uc-berkeley.jpg | Sather Tower | Ryan Schwark | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Campanile_Hi-Res_-_reduced_file_size.jpg) |
+| max-planck-research-schools-imprs-phd-positions.jpg | Göttingen | Daniel Schwen | CC BY 2.5 | [Commons](https://commons.wikimedia.org/wiki/File:Goettingen_Marktplatz_Oct06_Antilived.jpg) |
+| nthu-international-student-scholarship.jpg | Hsinchu | 曾傳富 | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:%E6%96%B0%E7%AB%B9%E7%81%AB%E8%BB%8A%E7%AB%99%28%E5%B7%B4%E6%B4%9B%E5%85%8B%E9%A2%A8%E6%A0%BC%29.jpg) |
+| ntu-taiwan-international-outstanding-graduate-student-scholarship.jpg | Longshan Temple (Taipei) | This Photo was taken by Supanut Arunoprayote.  Feel free to use any of my images | CC BY 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Bangka_Lungshan_Temple_07.23.jpg) |
+| peo-international-peace-scholarship.jpg | Des Moines, Iowa | Tony Webster from Minneapolis, Minnesota, United States | CC BY 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Morning_Skyline_-_Des_Moines%2C_Iowa_-_Winter_on_the_Des_Moines_River_%2824805016620%29_%28cropped%29.jpg) |
+| polyu-entry-scholarship-for-non-local-students.jpg | Hung Hom | WiNG | CC BY 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Hung_Hum_2011.jpg) |
+| postech-graduate-teaching-and-research-assistantships.jpg | Pohang | Jordi Sanchez Teruel | CC BY-SA 2.0 | [Commons](https://commons.wikimedia.org/wiki/File:Pohang_skyline.jpg) |
+| rosa-luxemburg-foundation-scholarships-for-international-students.jpg | Berlin Cathedral | Ansgar Koreng | CC BY 3.0 de | [Commons](https://commons.wikimedia.org/wiki/File:141227_Berliner_Dom.jpg) |
+| sabanc-university-international-undergraduate-scholarships.jpg | Galata Tower | A.Savin | FAL | [Commons](https://commons.wikimedia.org/wiki/File:Istanbul_asv2020-02_img48_Galata_Tower.jpg) |
+| skku-international-undergraduate-scholarships.jpg | Sungkyunkwan | GN Coordinator | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Myeongnyundang.jpg) |
+| stockholm-university-scholarship-scheme.jpg | Vasa Museum | Ad Meskens | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Stockholm_Vasa_Museum_and_Nordic_Museum_09.jpg) |
+| surrey-international-excellence-award.jpg | Guildford Cathedral | Purple at English Wikipedia | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:Guildford_Cathedral.jpg) |
+| tampere-university-admission-scholarship.jpg | Tammerkoski | kallerna | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:N%C3%A4sinneula_view_11.jpg) |
+| trinity-college-dublin-global-excellence-postgraduate-scholarship.jpg | Trinity College Dublin | Stephen Bergin steve_ | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:The_entrance_of_the_historic_Trinity_College_%28Unsplash%29.jpg) |
+| ucd-global-excellence-scholarship.jpg | Ha'penny Bridge | Unknown | Public domain | [Commons](https://commons.wikimedia.org/wiki/File:HalfPennyBridge.jpg) |
+| unist-graduate-scholarship-for-international-students.jpg | Ulsan | Choi2451 | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Taehwa_River_from_Hotel_Riverside_Ulsan.jpg) |
+| universiti-malaya-bright-scholarship.jpg | Kuala Lumpur | Renek78 | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Bukit_Bintang_junction_in_2024_2.jpg) |
+| university-of-galway-science-and-engineering-global-scholarships.jpg | Spanish Arch | Josi | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Spanihs_Arch.jpg) |
+| university-of-lausanne-masters-scholarship.jpg | Château d'Ouchy | Gzzz | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Ch%C3%A2teau_d%27Ouchy_septembre_2019.jpg) |
+| university-of-turku-tuition-discounts.jpg | Turku Cathedral | Markus Koljonen (Dilaudid) | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Turun_tuomiokirkko.jpg) |
+| uottawa-differential-tuition-fee-exemption-scholarship.jpg | Rideau Canal | Bobak Ha'Eri | CC BY-SA 2.5 | [Commons](https://commons.wikimedia.org/wiki/File:Rideau_Canal.jpg) |
+| waterloo-international-doctoral-student-award.jpg | Kitchener City Hall | Illustratedjc | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:KitchenerCityHall.JPG) |
+| waterloo-international-masters-award-of-excellence.jpg | Elora Gorge | You may select the license of your choice. | CC BY-SA 3.0 | [Commons](https://commons.wikimedia.org/wiki/File:Elora_Gorge.jpg) |
+| yonsei-underwood-international-college-scholarship.jpg | Gwanghwamun | *Youngjin | CC BY-SA 4.0 | [Commons](https://commons.wikimedia.org/wiki/File:Gwanghwamun_20240413.jpg) |
