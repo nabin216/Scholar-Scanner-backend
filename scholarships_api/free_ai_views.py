@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from scholarships.models import Scholarship
 from django.db.models import Q
 import os
+from datetime import date
 import requests
 import re
 
@@ -129,8 +130,10 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
         scholarship_context = ""
 
         if total:
+            today = date.today()
             scholarship_context = (
-                f"\n\nOur database has exactly {total} scholarships. Here is the full list "
+                f"\n\nToday is {today.day} {today:%B %Y}. Our database has exactly {total} scholarships. "
+                "Here is the full list "
                 "(title | host country | levels | funding | approx. yearly USD | next deadline):\n"
             )
             for sch in scholarships:
@@ -138,7 +141,8 @@ class FreeAIAssistantViewSet(viewsets.ViewSet):
                 funding = ', '.join(fund.name for fund in sch.fund_type.all())
                 amount = f"${sch.amount:,.0f}" if sch.amount else 'varies'
                 scholarship_context += (
-                    f"- {sch.title} | {sch.country.name} | {levels} | {funding} | {amount} | {sch.deadline}\n"
+                    f"- {sch.title} | {sch.country.name} | {levels} | {funding} | {amount} | "
+                    f"{sch.deadline.day} {sch.deadline:%b %Y}\n"
                 )
             scholarship_context += (
                 "\nWhen recommending scholarships, only use this list and match the listed host country, "
